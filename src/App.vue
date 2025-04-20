@@ -30,7 +30,7 @@
 
 
     <main>
-     <div>
+      <div class="banner-wrapper">
     <BannerCarousel />
   </div>
       <router-view />
@@ -221,6 +221,14 @@ footer p {
   margin: 0;
   color: yellow; /* Ensures text remains yellow */
 }
+.banner-wrapper {
+  height: 5rem; /* same as h-64 */
+  max-height: 5rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+}
+
 
 
 

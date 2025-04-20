@@ -1,12 +1,16 @@
 <template>
-  <div class="relative w-full h-64 overflow-hidden rounded-xl shadow-lg bg-black">
-    <transition-group name="fade" tag="div">
-      <component
-        :is="currentSlide.type"
+  <div class="w-full h-[160px] overflow-hidden relative">
+    <transition-group name="slide" tag="div" class="w-full h-full relative flex">
+      <div
+        v-if="currentSlide.type === 'text-banner'"
         :key="currentSlideIndex"
-        v-bind="currentSlide"
-        class="w-full h-full object-cover"
-      ></component>
+        class="banner-slide"
+        :class="currentSlide.bgClass"
+      >
+        <p class="banner-text">
+          {{ currentSlide.message }}
+        </p>
+      </div>
     </transition-group>
   </div>
 </template>
@@ -18,9 +22,31 @@ export default {
     return {
       currentSlideIndex: 0,
       slides: [
-        { type: "img", src: "/assets/banner1.jpg", alt: "Ad 1" },
-        { type: "video", src: "/assets/promo.mp4", autoplay: true, muted: true, loop: true },
-        { type: "text-banner", message: "₦2,000,000 won in just 5 mins!" }
+        {
+          type: "text-banner",
+          message: "₦2,000,000 WON IN JUST 5 MINS!",
+          bgClass: "bg-purple",
+        },
+        {
+          type: "text-banner",
+          message: "PLAY SMART. WIN FAST. REPEAT.",
+          bgClass: "bg-red",
+        },
+        {
+          type: "text-banner",
+          message: "YOUR WINNING JOURNEY STARTS HERE!",
+          bgClass: "bg-blue",
+        },
+        {
+          type: "text-banner",
+          message: "NO STRESS, JUST PROFIT",
+          bgClass: "bg-green",
+        },
+        {
+          type: "text-banner",
+          message: "NIGERIA’S #1 FOR FAST WINS 💸",
+          bgClass: "bg-yellow",
+        },
       ],
       interval: null,
     };
@@ -28,7 +54,7 @@ export default {
   computed: {
     currentSlide() {
       return this.slides[this.currentSlideIndex];
-    }
+    },
   },
   mounted() {
     this.startRotation();
@@ -41,35 +67,68 @@ export default {
       this.interval = setInterval(() => {
         this.currentSlideIndex =
           (this.currentSlideIndex + 1) % this.slides.length;
-      }, 5000); // Change every 5 seconds
-    }
+      }, 8000);
+    },
   },
-  components: {
-    img: {
-      props: ["src", "alt"],
-      template: `<img :src="src" :alt="alt" class="w-full h-full object-cover" />`
-    },
-    video: {
-      props: ["src", "autoplay", "muted", "loop"],
-      template: `<video :src="src" :autoplay="autoplay" :muted="muted" :loop="loop" class="w-full h-full object-cover" />`
-    },
-    "text-banner": {
-      props: ["message"],
-      template: `<div class="flex items-center justify-center w-full h-full text-white text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-800">
-                  {{ message }}
-                 </div>`
-    }
-  }
 };
 </script>
 
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
+<style>
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 1s ease-in-out;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+.banner-slide {
+  @apply w-full h-full flex items-center justify-center text-center px-6;
+  position: absolute; /* Keep each slide in place while sliding */
+  width: 100%;
+}
+
+.banner-text {
+  font-size: 2rem;
+  font-weight: 800;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+  color: white;
+  line-height: 1.3;
+}
+
+@media (min-width: 768px) {
+  .banner-text {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .banner-text {
+    font-size: 3rem;
+  }
+}
+
+/* Background color classes */
+.bg-purple {
+  background: linear-gradient(45deg, #7b2cbf, #9d4edd);
+}
+
+.bg-red {
+  background: linear-gradient(45deg, #d00000, #ff4d6d);
+}
+
+.bg-blue {
+  background: linear-gradient(45deg, #1d3557, #457b9d);
+}
+
+.bg-green {
+  background: linear-gradient(45deg, #2d6a4f, #95d5b2);
+}
+
+.bg-yellow {
+  background: linear-gradient(45deg, #fca311, #ffdd00);
+  color: black !important;
 }
 </style>
