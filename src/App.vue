@@ -63,7 +63,7 @@ export default {
   computed: {
     ...mapState(['isLoggedIn']), // Get `isLoggedIn` state from Vuex
     isHiddenPage() {
-    return this.$route.path.startsWith("/share-profile") || this.$route.path.startsWith("/share-terms") || this.$route.path.startsWith("/share-payment-success") || this.$route.path.startsWith("/share-deposit") || this.$route.path.startsWith("/share-withdrawal")  || this.$route.path.startsWith("/share-signup") || this.$route.path.startsWith("/share-login") || this.$route.path.startsWith("/share-forgot-password") || this.$route.path.startsWith("/share-reset-password");
+    return this.$route.path.startsWith("/share-profile") || this.$route.path.startsWith("/share-terms")  || this.$route.path.startsWith("/share-payment-success") || this.$route.path.startsWith("/share-deposit") || this.$route.path.startsWith("/share-withdrawal")  || this.$route.path.startsWith("/share-signup") || this.$route.path.startsWith("/share-login") || this.$route.path.startsWith("/share-forgot-password") || this.$route.path.startsWith("/share-reset-password");
   },
   },
   methods: {
