@@ -1,6 +1,6 @@
 <template>
   <div class="investment-page">
-  <div class="prompt"> make at least four(4) selections!</div>
+  <div class="prompt"> make at least two(2) selections!</div>
     
     <div class="category-cards">
       <v-card v-for="category in categories" :key="category.id" class="category-card">
@@ -31,7 +31,7 @@
         </v-card-text>
       </v-card>
     </div>
-    <div class="prompt"> make at least four(4) selections!</div>
+    <div class="prompt"> make at least two(2) selections!</div>
      <button class="submit-btn" :disabled="!isAnyChoiceSelected" @click="viewInvestmentSummary">
      View Investment Summary
       </button>
@@ -97,8 +97,8 @@ export default {
 
   computed: {
     isAnyChoiceSelected() {
-       // Check if at least 4 choices are selected
-    return Object.values(this.selectedChoices).filter(choice => choice !== null).length >= 4;
+       // Check if at least 2 choices are selected
+    return Object.values(this.selectedChoices).filter(choice => choice !== null).length >= 2;
   },
 },
 
