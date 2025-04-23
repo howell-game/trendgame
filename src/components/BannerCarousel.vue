@@ -1,5 +1,7 @@
 <template>
+<div class="banner-carousel-wrapper">
   <div class="w-full h-[160px] overflow-hidden relative">
+  <div class="w-full h-full relative">
     <transition-group name="slide" tag="div" class="w-full h-full relative flex">
       <div
         v-if="currentSlide.type === 'text-banner'"
@@ -12,6 +14,8 @@
         </p>
       </div>
     </transition-group>
+     </div>
+      </div>
   </div>
 </template>
 
@@ -74,25 +78,25 @@ export default {
 </script>
 
 <style>
+
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 1s ease-in-out;
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
 }
 
 .slide-enter-from,
 .slide-leave-to {
-  transform: translateX(100%);
+  opacity: 0;
+  transform: translateX(30%);
 }
 
 .banner-slide {
   @apply w-full h-full flex items-center justify-center text-center px-6;
-  position: absolute; /* Keep each slide in place while sliding */
-  width: 100%;
+  /* No need to manually position anymore — handled via Tailwind `absolute inset-0` */
 }
-
 .banner-text {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 900;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
   color: white;
   line-height: 1.3;
