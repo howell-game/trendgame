@@ -130,7 +130,7 @@ export default {
   font-weight: bold;
 }
 .timeframe-container {
-  background-image: url('@/assets/background3.png');
+  background-image: url('@/assets/background4.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

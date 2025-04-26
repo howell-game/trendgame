@@ -31,6 +31,17 @@ export default {
           message: "₦2,000,000 WON IN JUST 5 MINS!",
           bgClass: "bg-purple",
         },
+         {
+          type: "text-banner",
+          message: "NO GREED.NO FEAR.JUST win",
+          bgClass: "bg-orange",
+        },
+         {
+          type: "text-banner",
+          message: "ALWAYS 'VIEW TREND'",
+          bgClass: "bg-violet",
+        },
+
         {
           type: "text-banner",
           message: "PLAY SMART. WIN FAST. REPEAT.",
@@ -122,9 +133,15 @@ export default {
 .bg-red {
   background: linear-gradient(45deg, #d00000, #ff4d6d);
 }
-
+.bg-violet {
+  background: linear-gradient(45deg,rgba(202, 21, 222, 0.15),rgb(194, 140, 228));
+}
 .bg-blue {
   background: linear-gradient(45deg, #1d3557, #457b9d);
+}
+
+.bg-orange {
+  background: linear-gradient(45deg,rgb(198, 134, 85),rgb(126, 78, 15));
 }
 
 .bg-green {

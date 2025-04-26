@@ -198,7 +198,7 @@ footer {
   margin: 0;
 }
 .app {
-  background-image: url('@/assets/background3.png');
+  background-image: url('@/assets/background4.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
