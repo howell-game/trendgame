@@ -27,6 +27,11 @@ export default {
       currentSlideIndex: 0,
       slides: [
         {
+        type: "text-banner",
+          message: "₦250 BONUS on SignUp",
+          bgClass: "bg-luck",
+        },
+        {
           type: "text-banner",
           message: "₦2,000,000 WON IN JUST 5 MINS!",
           bgClass: "bg-purple",
@@ -35,6 +40,11 @@ export default {
           type: "text-banner",
           message: "NO GREED.NO FEAR.JUST win",
           bgClass: "bg-orange",
+        },
+        {
+          type: "text-banner",
+          message: "₦250 BONUS on SignUp",
+          bgClass: "bg-luck",
         },
          {
           type: "text-banner",
@@ -48,6 +58,11 @@ export default {
           bgClass: "bg-red",
         },
         {
+        type: "text-banner",
+          message: "₦250 BONUS on SignUp",
+          bgClass: "bg-luck",
+        },
+        {
           type: "text-banner",
           message: "YOUR WINNING JOURNEY STARTS HERE!",
           bgClass: "bg-blue",
@@ -56,6 +71,11 @@ export default {
           type: "text-banner",
           message: "NO STRESS, JUST PROFIT",
           bgClass: "bg-green",
+        },
+        {
+        type: "text-banner",
+          message: "₦250 BONUS on SignUp",
+          bgClass: "bg-luck",
         },
         {
           type: "text-banner",
@@ -127,29 +147,32 @@ export default {
 
 /* Background color classes */
 .bg-purple {
-  background: linear-gradient(45deg, #7b2cbf, #9d4edd);
+  background: linear-gradient(45deg, #7b2cbf,rgb(20, 4, 33));
 }
 
 .bg-red {
-  background: linear-gradient(45deg, #d00000, #ff4d6d);
+  background: linear-gradient(45deg, #d00000,rgb(184, 209, 45));
+}
+.bg-luck {
+  background: linear-gradient(45deg,rgb(0, 208, 28),rgb(51, 7, 15));
 }
 .bg-violet {
-  background: linear-gradient(45deg,rgba(202, 21, 222, 0.15),rgb(194, 140, 228));
+  background: linear-gradient(45deg,rgba(164, 21, 21, 0.73),rgb(20, 130, 16));
 }
 .bg-blue {
-  background: linear-gradient(45deg, #1d3557, #457b9d);
+  background: linear-gradient(45deg, #1d3557,rgb(173, 49, 113));
 }
 
 .bg-orange {
-  background: linear-gradient(45deg,rgb(198, 134, 85),rgb(126, 78, 15));
+  background: linear-gradient(45deg,rgb(116, 57, 12),rgb(25, 25, 203));
 }
 
 .bg-green {
-  background: linear-gradient(45deg, #2d6a4f, #95d5b2);
+  background: linear-gradient(45deg,rgb(40, 172, 113),rgb(4, 26, 14));
 }
 
 .bg-yellow {
-  background: linear-gradient(45deg, #fca311, #ffdd00);
+  background: linear-gradient(45deg, #fca311,rgb(46, 43, 21));
   color: black !important;
 }
 </style>

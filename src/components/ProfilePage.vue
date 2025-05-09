@@ -1,11 +1,17 @@
 <template>
   <div>
+  <div class="top-bar">
+      <button class="get-referral" @click="getReferralCode">Get Referral Code</button>
+    </div>
   <div class="base-data">
+  <div v-if="referralLink" class="referral-container">
+      <p><strong>Referral Link:</strong> {{ referralLink }}</p>
+      <button class="copy-btn" @click="copyReferral">Copy</button>
+    </div>
   <h1>Welcome, {{ userName }}</h1>
   <p><strong class="highlight-text">User ID:</strong> <span class="bold-yellow">{{ userId }}</span></p>
   <p><strong class="highlight-text">Balance:</strong> <span class="bold-yellow">{{ balance }}</span></p>
 </div>
-
 
     <div class="button-container">
     <p>
@@ -27,10 +33,15 @@
 import { mapState } from "vuex";
 import InvestmentPage from "./InvestmentPage.vue";
 import axios from "axios";
-
+import { useToast } from 'vue-toastification'; 
 export default {
   components: {
     InvestmentPage,
+  },
+  data() {
+    return {
+      referralLink: "", // New state to hold referral link
+    };
   },
   computed: {
     ...mapState(["userName", "userId", "balance"]), // Map Vuex state to the profile page
@@ -69,6 +80,34 @@ navigateToReceipt() {
     navigateToInvestmentDetails() {
       this.$router.push(`/investment-details/${this.userId}`);
     },
+    async getReferralCode() {
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/investments/generate-referral`,
+          
+          { userId: this.userId },
+          {
+            headers: {
+              Authorization: `Bearer ${this.$store.getters.token}`,
+            },
+          }
+        );
+        this.referralLink = response.data.referralLink;
+      } catch (error) {
+        console.error("Failed to generate referral code:", error);
+      }
+    },
+    copyReferral() {
+      if (this.referralLink) {
+        navigator.clipboard.writeText(this.referralLink)
+          .then(() => {
+            const toast = useToast();
+            toast.success('Referral code copied!');
+          })
+          .catch(err => {
+            console.error('Failed to copy:', err);
+          });
+      }
+    }
   },
   created() {
     this.fetchBalance(); // Fetch balance when the page is loaded
@@ -78,6 +117,53 @@ navigateToReceipt() {
 
 
 <style>
+/* Top bar for Get Referral Code button */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.get-referral:hover {
+  background-color: darkred;
+}
+
+/* Referral Container */
+.referral-container {
+  margin-top: 10px;
+  text-align: center;
+}
+.get-referral {
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  padding: 5px 10px; /* smaller padding */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px; /* smaller text */
+  width: auto; /* make width fit the content */
+  min-width: 120px; /* optional: minimum width */
+}
+
+.copy-btn {
+  margin-top: 5px;
+  background-color: green;
+  color: white;
+  padding: 5px 10px; /* smaller padding */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px; /* smaller text */
+  width: auto; /* fit content naturally */
+  min-width: 100px; /* optional: minimum width */
+}
+
+
+.copy-btn:hover {
+  background-color: darkgreen;
+}
+
 .profile {
   text-align: center;
   margin: 30px auto;

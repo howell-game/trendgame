@@ -70,6 +70,7 @@ export default {
       showPassword: false,
       message: '',
       isSuccess: false,
+      referralCode: '', // 👈 add this
 
       // Password validation flags
       hasUppercase: false,
@@ -84,6 +85,10 @@ export default {
       return this.hasUppercase && this.hasLowercase && this.hasNumber && this.hasSpecialChar && this.isMinLength;
     },
   },
+  
+mounted() {
+  this.referralCode = this.$route.query.ref || '';
+},
   methods: {
     validatePassword() {
       this.hasUppercase = /[A-Z]/.test(this.password);
@@ -109,6 +114,7 @@ export default {
     name: this.name,
     email: this.email,
     password: this.password,
+    ref: this.referralCode, // 👈 send referral
   }
 );
 
