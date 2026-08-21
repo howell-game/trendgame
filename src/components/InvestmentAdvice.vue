@@ -1,14 +1,14 @@
 <template>
   <div class="p-6 bg-white shadow-lg rounded-lg max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Investment Strategy Guide</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Selection Strategy Guide</h2>
 
     <div class="space-y-4 text-gray-700">
       <section class="bg-lightyellow p-4 rounded-md">
         <h3 class="text-lg font-semibold text-gray-900">1. Understanding ROI Metrics</h3>
         <p>
-          Upon clicking "View Trend", a display of investment indicators are shown for each category. The **Mean ROI (Return on Investment)** represents the **average** return across completed investments,  
-          while the **Max ROI (Maximum Return on Investment)** highlights the **highest possible return**  
-          within a category.  
+          Upon clicking "View Trend", a display of indicators are shown for each category. The **Mean ROI** represents the **average** return across completed trade selections,  
+          while the **Max ROI** highlights the **highest possible return**  
+          within a category. 
         </p>
         <p>
           The difference between these two values indicates **volatility**—a **small gap** suggests stability,  
@@ -40,9 +40,9 @@
       </section>
 
       <section class="bg-lightyellow p-4 rounded-md">
-        <h3 class="text-lg font-semibold text-gray-900">4. Combining Metrics for Smarter Investments</h3>
+        <h3 class="text-lg font-semibold text-gray-900">4. Combining Metrics for Smarter Selections</h3>
         <p>
-          To optimize investment decisions, consider the following approach:  
+          To optimize trade section decisions, consider the following approach:  
         </p>
         <ul class="list-disc list-inside">
           <li>
@@ -69,7 +69,7 @@
       <section class="bg-lightyellow p-4 rounded-md">
         <h3 class="text-lg font-semibold text-gray-900">5. Final Considerations</h3>
         <p>
-          By combining these factors, you can make **data-driven** investment decisions  
+          By combining these factors, you can make **data-driven** trade selection decisions  
           rather than relying solely on intuition.
         </p>
         <p>
@@ -82,7 +82,7 @@
     <div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg">
       <p><strong>Disclaimer:</strong> This strategy guide is only a suggestion to help refine your trading views.  
         Market conditions fluctuate, and past performance does not guarantee future results.  
-        Invest responsibly.</p>
+        trade responsibly.</p>
     </div>
   </div>
 </template>

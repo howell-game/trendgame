@@ -5,6 +5,7 @@ import axios from "axios"; // Import axios for API requests
 
 const store = createStore({
   state: {
+    trendCache:{},
     isLoggedIn: localStorage.getItem("token") ? true : false,
     userName: localStorage.getItem("userName") || null,
     memberName: localStorage.getItem("memberName") || null,
@@ -19,12 +20,16 @@ const store = createStore({
     socket: null,
   },
   mutations: {
+    SET_TRENDS(state,trends){
+      state.trendCache = trends;
+  },
     setUser(state, userData) {
       state.isLoggedIn = true;
       state.userName = userData.name;
       state.userId = userData.userId;
       state.balance = userData.balance;
       state.token = userData.token;
+
 
       localStorage.setItem("token", userData.token);
       localStorage.setItem("userName", userData.name);
@@ -124,6 +129,30 @@ const store = createStore({
       commit("logOut");
     },
 
+    async loadTrendCache({ commit }) {
+
+  try {
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_APP_BASE_URL}/api/investments/trend-data`
+    );
+
+    if (response.data.success) {
+
+      commit("SET_TRENDS", response.data.trends);
+
+      console.log("Trend cache loaded.");
+
+    }
+
+  } catch (err) {
+
+    console.error("Trend cache error:", err);
+
+  }
+
+},
+
     async fetchShareBalance({ commit, state }) {
       try {
         const response = await axios.get(
@@ -189,6 +218,9 @@ const store = createStore({
     },
   },
   getters: {
+    trendCache(state){
+      return state.trendCache;
+    },
     isLoggedIn: (state) => state.isLoggedIn,
     userId: (state) =>state.userId,
     userName: (state) => state.userName,

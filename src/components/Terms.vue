@@ -2,7 +2,7 @@
   <div class="terms-container">
     <v-card class="card">
       <v-card-title>Terms & Conditions</v-card-title>
-      <v-card-text>By using QuickStock9ja, you agree to these terms. Please read them carefully before proceeding.</v-card-text>
+      <v-card-text>By using TrendGame, you agree to these terms. Please read them carefully before proceeding.</v-card-text>
     </v-card>
 
     <section class="user-responsibilities">
@@ -21,9 +21,9 @@
 
     <section class="risk-disclaimer">
       <v-card class="card">
-        <v-card-title>Investment Risks</v-card-title>
+        <v-card-title>Selection Risks</v-card-title>
         <v-card-text>
-          QuickStock9ja does not guarantee profits. Investments are subject to supply and demand fluctuations, and users must invest responsibly.
+          TrendGame does not guarantee profits. Selections are subject to supply and demand fluctuations, and users must trade responsibly.
         </v-card-text>
       </v-card>
     </section>
@@ -50,7 +50,7 @@
       <v-card class="card">
         <v-card-title>Dispute Resolution</v-card-title>
         <v-card-text>
-          If you have concerns, contact our support team. Disputes will be reviewed fairly, but no refunds will be issued once investments are placed.
+          If you have concerns, contact our support team. Disputes will be reviewed fairly, but no refunds will be issued once selections are placed.
         </v-card-text>
       </v-card>
     </section>

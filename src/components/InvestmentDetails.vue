@@ -1,191 +1,536 @@
 <template>
   <div class="details-pan">
-    <h2>Investment Details</h2>
-    <div v-if="!displayedInvestments || displayedInvestments.length === 0" class="no-investments">
-      Loading Investments.
+
+    <h2>Your Selection History</h2>
+
+    <div
+      v-if="displayedInvestments.length===0"
+      class="no-investments"
+    >
+      No investments found.
     </div>
-    <div v-else>
-      <ul>
-        <li
-          v-for="investment in displayedInvestments"
-          :key="investment._id"
-          class="investment-item"
-        >
-          <span class="category">{{ investment.category }}</span>
-          <span class="outcome">{{ investment.outcome || 'Pending' }}</span>
-          <span class="status">{{ investment.status }}</span>
-          <details>
-            <summary>Details</summary>
-            <p><strong>Choice:</strong> {{ investment.choice }}</p>
-            <p><strong>Amount:</strong> ₦{{ investment.amount }}</p>
-            <p><strong>Odds:</strong> {{ investment.odds }}</p>
-            <p><strong>Timeframe:</strong> {{ investment.timeframe }}</p>
-          </details>
-        </li>
-      </ul>
-      <button v-if="hasMore" @click="loadMoreInvestments">Load More</button>
+
+    <ul v-else>
+
+      <li
+        v-for="investment in displayedInvestments"
+        :key="investment.investmentCode"
+        class="investment-item"
+        :class="investment.status"
+      >
+
+        <details>
+
+          <summary class="investment-header">
+
+            <span class="date">
+              {{ formatDate(investment.createdAt) }}
+            </span>
+
+            <span
+              class="mode"
+              :class="investment.isDemo ? 'demo' : 'real'"
+            >
+              {{ investment.isDemo ? "DEMO" : "REAL" }}
+            </span>
+
+            <span class="status">
+              {{ investment.status }}
+            </span>
+
+          </summary>
+
+          <div
+  v-for="(item,index) in investment.selectedInvestments"
+  :key="index"
+  class="selection"
+>
+
+    <div class="field">
+        <span class="title">Category</span>
+        <span>{{ item.category }}</span>
     </div>
+
+    <div class="field">
+        <span class="title">Choice</span>
+        <span>{{ item.choice }}</span>
+    </div>
+
+    <div class="field">
+        <span class="title">Amount</span>
+        <span>₦{{ item.amount }}</span>
+    </div>
+
+    <div class="field">
+        <span class="title">Odds</span>
+        <span>{{ item.odds }}%</span>
+    </div>
+
+    <div class="field">
+    <span class="title">Outcome</span>
+
+    <span
+        :class="{
+            win: item.outcome === 'win',
+            loss:
+                item.outcome === 'loss' ||
+                item.outcome === 'neutral',
+            pending: !item.outcome
+        }"
+    >
+
+        {{
+            item.outcome === "neutral"
+                ? "loss"
+                : item.outcome || "Pending"
+        }}
+
+    </span>
+</div>
+
+    <div class="field">
+        <span class="title">Time</span>
+        <span>{{ item.timeframe }}</span>
+    </div>
+
+</div>
+
+        </details>
+
+      </li>
+
+    </ul>
+
+    <button
+      v-if="hasMore"
+      @click="loadMoreInvestments"
+    >
+      Load More
+    </button>
+
   </div>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 import axios from "axios";
+import { mapGetters } from "vuex";
 
 export default {
-  name: "InvestmentDetails",
-  data() {
-    return {
-      investments: [], // All fetched investments
-      displayedInvestments: [], // Investments displayed on the page
-      itemsPerPage: 70, // Number of investments displayed per batch
-      currentPage: 0,
-      hasMore: true,
-    };
-  },
-  computed: {
-    ...mapGetters(["userId", "token"]),
-  },
-  methods: {
-    async fetchInvestments() {
-      try {
-        if (!this.userId) return;
 
-       const response = await axios.get(
-   `${import.meta.env.VITE_APP_BASE_URL}/api/investments/user/${this.userId}`,
-  {
-    headers: {
-      Authorization: `Bearer ${this.token}`,
+  name:"InvestmentDetails",
+
+  data(){
+
+    return{
+
+      investments:[],
+
+      displayedInvestments:[],
+
+      currentPage:0,
+
+      itemsPerPage:70,
+
+      hasMore:true
+
+    }
+
+  },
+
+  computed:{
+    ...mapGetters(["userId","token"])
+  },
+
+  methods:{
+
+    formatDate(date){
+
+      return new Date(date).toLocaleString();
+
     },
-  }
-);
 
+    async fetchInvestments(){
 
-        // Store and sort investments (already sorted from backend)
-        this.investments = response.data;
+      if(!this.userId) return;
 
-        // Initially load the first batch
+      try{
+
+        const [real,demo]=await Promise.all([
+
+          axios.get(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/investments/user/${this.userId}`,
+            {
+              headers:{
+                Authorization:`Bearer ${this.token}`
+              }
+            }
+          ),
+
+          axios.get(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/investments/demouser/${this.userId}`,
+            {
+              headers:{
+                Authorization:`Bearer ${this.token}`
+              }
+            }
+          )
+
+        ]);
+
+        const realList=(real.data||[]).map(i=>({
+
+          ...i,
+
+          isDemo:false
+
+        }));
+
+        const demoList=(demo.data||[]).map(i=>({
+
+          ...i,
+
+          isDemo:true
+
+        }));
+
+        this.investments=[
+
+          ...realList,
+
+          ...demoList
+
+        ].sort(
+
+          (a,b)=>
+
+          new Date(b.createdAt)-new Date(a.createdAt)
+
+        );
+
         this.updateDisplayedInvestments();
-      } catch (error) {
-        console.error("Error fetching investments:", error);
-      }
-    },
-    updateDisplayedInvestments() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      const newBatch = this.investments.slice(start, end);
 
-      this.displayedInvestments = [...this.displayedInvestments, ...newBatch];
-
-      if (end >= this.investments.length) {
-        this.hasMore = false; // No more investments to load
       }
+
+      catch(err){
+
+        console.error(err);
+
+      }
+
     },
-    loadMoreInvestments() {
+
+    updateDisplayedInvestments(){
+
+      const start=this.currentPage*this.itemsPerPage;
+
+      const end=start+this.itemsPerPage;
+
+      this.displayedInvestments.push(
+
+        ...this.investments.slice(start,end)
+
+      );
+
+      if(end>=this.investments.length){
+
+        this.hasMore=false;
+
+      }
+
+    },
+
+    loadMoreInvestments(){
+
       this.currentPage++;
+
       this.updateDisplayedInvestments();
-    },
+
+    }
+
   },
-  created() {
+
+  created(){
+
     this.fetchInvestments();
+
   }
-};
+
+}
 </script>
 
-
 <style scoped>
-h2 {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 20px;
-}
 
-.no-investments {
-  color: red;
-  text-align: center;
-  font-size: 18px;
-  margin-top: 20px;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.investment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5.5px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #003366, green);
-  color: white;
-  margin-bottom: 10px;
-}
-
-.investment-item:hover {
-  background: linear-gradient(135deg,rgb(55, 104, 121), #2e86de);
-}
-
-.category {
-  flex: 1;
-  text-align: left;
-  font-weight: bold;
-  color: yellow;
-}
-
-.outcome {
-  flex: 1;
-  text-align: center;
-  font-weight: bold;
-  color: yellow;
-}
-
-.status {
-  flex: 1;
-  text-align: right;
-  font-weight: bold;
-  color: yellow;
-}
-
-details summary {
-  margin-top: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #fff;
-}
-
-details summary:hover {
-  text-decoration: underline;
-}
-
-details p {
-  color: #fff;
-  margin: 5px 0;
-}
-
-button {
-  margin: 20px auto;
-  display: block;
-  background: #2e86de;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
 .details-pan{
-  text-align: center;
-  margin: 20px auto;
- 
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: lightyellow;
+
+    width:95%;
+
+    margin:auto;
+
+    background:#fffde8;
+
+    padding:20px;
+
+    border-radius:8px;
+
 }
 
-button:hover {
-  background: #48c6ef;
+h2{
+
+    text-align:center;
+
+    margin-bottom:20px;
+
 }
+
+ul{
+
+    list-style:none;
+
+    padding:0;
+
+}
+
+.investment-item{
+
+    margin-bottom:15px;
+
+    border-radius:8px;
+
+    overflow:hidden;
+
+    border:1px solid #ddd;
+
+}
+
+details{
+
+    width:100%;
+
+}
+
+.investment-header{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:15px;
+
+    color:white;
+
+    font-weight:bold;
+
+    box-sizing:border-box;
+
+}
+
+.awaiting .investment-header{
+
+    background:#d6a400;
+
+}
+
+.active .investment-header{
+
+    background:#2e9d45;
+
+}
+
+.completed .investment-header{
+
+    background:#7f7f7f;
+
+}
+
+.date{
+
+    flex:1;
+
+    text-align:left;
+
+}
+
+.mode{
+
+    flex:1;
+
+    text-align:center;
+
+}
+
+.mode.demo{
+
+    color:#ff4444;
+
+}
+
+.mode.real{
+
+    color:#8be88b;
+
+}
+
+.status{
+
+    flex:1;
+
+    text-align:right;
+
+    text-transform:uppercase;
+
+}
+
+.selection{
+
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+
+    margin:8px 10px;
+    padding:8px 10px;
+
+    background:#ffffff;
+
+    border-left:4px solid #3498db;
+    border-radius:6px;
+
+    font-size:13px;
+
+}
+
+.field{
+
+    display:flex;
+    align-items:center;
+
+    gap:4px;
+
+}
+
+.title{
+
+    font-weight:bold;
+    color:#444;
+    font-size:12px;
+
+}
+
+.field span:last-child{
+
+    color:#111;
+
+}
+
+.win{
+
+    color:green;
+    font-weight:bold;
+
+}
+
+.loss{
+
+    color:red;
+    font-weight:bold;
+
+}
+
+.pending{
+
+    color:orange;
+    font-weight:bold;
+
+}
+
+.row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    padding:8px 0;
+
+    border-bottom:1px solid #eee;
+
+}
+
+.row:last-child{
+
+    border-bottom:none;
+
+}
+
+.label{
+
+    font-weight:bold;
+
+    color:#555;
+
+}
+
+.win{
+
+    color:green;
+
+    font-weight:bold;
+
+}
+
+.loss{
+
+    color:red;
+
+    font-weight:bold;
+
+}
+
+.pending{
+
+    color:orange;
+
+    font-weight:bold;
+
+}
+
+button{
+
+    display:block;
+
+    margin:20px auto;
+
+    padding:10px 25px;
+
+    border:none;
+
+    background:#3498db;
+
+    color:white;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    background:#2575c4;
+
+}
+
+.no-investments{
+
+    text-align:center;
+
+    color:red;
+
+    font-weight:bold;
+
+}
+
 </style>

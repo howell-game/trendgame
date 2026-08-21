@@ -1,235 +1,894 @@
 <template>
-
   <div class="app">
-    <header>
-    <div class="logo-container">
-    <img src="@/assets/logo.png" alt="QuickStock9ja Logo" class="logo" /><h1 class="quick">QuickStock9ja</h1></div>
-       
-      
-      
-      <nav v-if="!isHiddenPage">
-      
-    
-  
-        
-         <router-link to="/advice">How2Trade</router-link> 
-         <router-link v-if="isLoggedIn" :to="`/profile/${user?.userId}/`">Profile</router-link>
-        <!-- Conditionally render SignUp/Login links based on isLoggedIn -->
-        <router-link v-if="!isLoggedIn" to="/signup">Sign Up</router-link> 
-        <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
-        <!-- Render Logout link if logged in -->
-        <a v-if="isLoggedIn" href="#" @click.prevent="logout">Logout</a>
 
-        
-        
+    <!-- =========================
+         HEADER
+    ========================== -->
+    <header
+      v-if="!isAdminPage"
+      class="main-header"
+      :class="{ 'header-hidden': isHeaderHidden }"
+    >
+
+      <div class="logo-container">
+        <h1 class="quick">TrendGame9ja</h1>
+      </div>
+
+      <nav v-if="!isHiddenPage" class="main-nav">
+
+        <router-link to="/advice">
+          HowToPlay
+        </router-link>
+
+        <router-link
+          v-if="isLoggedIn"
+          :to="`/profile/${user?.userId}/`"
+        >
+          Profile
+        </router-link>
+
+        <router-link
+          v-if="!isLoggedIn"
+          to="/signup"
+        >
+          Sign Up
+        </router-link>
+
+        <router-link
+          v-if="!isLoggedIn"
+          to="/login"
+        >
+          Login
+        </router-link>
+
+        <a
+          v-if="isLoggedIn"
+          href="#"
+          @click.prevent="logout"
+        >
+          Logout
+        </a>
+
       </nav>
-      <div id="app">
-    <Timeframe /> <!-- Display the Timeframe component -->
-  </div>
+
     </header>
 
 
+    <!-- =========================
+         TIMEFRAME
+    ========================== -->
+    <div
+      v-if="!isAdminPage"
+      class="timeframe-wrapper"
+      :class="{ 'timeframe-raised': isHeaderHidden }"
+    >
+      <Timeframe />
+    </div>
+
+
+    <!-- =========================
+         BANNER CAROUSEL
+    ========================== -->
+    <div
+      v-if="!isAdminPage"
+      class="banner-wrapper"
+    >
+      <BannerCarousel />
+    </div>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
     <main>
-      <div class="banner-wrapper">
-    <BannerCarousel />
-  </div>
       <router-view />
     </main>
-<div id="app">
-    <Timeframe /> <!-- Display the Timeframe component -->
-  </div>
-    <footer>
-    <nav2 v-if="!isHiddenPage">
-     <router-link to="/about/">AboutUs</router-link> | |
-           <router-link to="/terms/">Terms&conditions</router-link></nav2>
-      <p>© 2025 QuickStock9ja. All Rights Reserved.</p>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+    <footer
+      v-if="!isAdminPage && !isHiddenPage"
+    >
+
+      <nav class="footer-nav">
+
+        <router-link to="/about/">
+          About Us
+        </router-link>
+
+        <span class="footer-divider">|</span>
+
+        <router-link to="/terms/">
+          Terms & Conditions
+        </router-link>
+
+      </nav>
+
+      <p>
+        © 2026 TrendGame. All Rights Reserved.
+      </p>
+
     </footer>
+
   </div>
 </template>
 
+
 <script>
-import axios from 'axios';
-import { mapState, mapActions } from 'vuex';
-import Timeframe from './components/Timeframe.vue'; 
+import { mapState, mapActions } from "vuex";
+
+import Timeframe from "./components/Timeframe.vue";
 import BannerCarousel from "./components/BannerCarousel.vue";
 
 
 export default {
+
   name: "App",
-   components: {
-    Timeframe, // Register Timeframe component
+
+
+  components: {
+    Timeframe,
     BannerCarousel,
   },
+
+
+  data() {
+
+    return {
+
+      // =========================
+      // HEADER SCROLL STATE
+      // =========================
+      isHeaderHidden: false,
+
+      lastScrollPosition: 0,
+
+      // =========================
+      // LOGOUT TIMER
+      // =========================
+      logoutTimer: null,
+
+    };
+
+  },
+
+
   computed: {
-    ...mapState(['isLoggedIn']), // Get `isLoggedIn` state from Vuex
+
+    ...mapState([
+      "isLoggedIn",
+      "user",
+    ]),
+
+
+    // =========================
+    // ADMIN PAGE
+    // =========================
+    isAdminPage() {
+
+      return this.$route.path === "/adminpage";
+
+    },
+
+
+    // =========================
+    // HIDDEN PAGES
+    // =========================
     isHiddenPage() {
-    return this.$route.path.startsWith("/share-profile") || this.$route.path.startsWith("/share-terms")  || this.$route.path.startsWith("/share-payment-success") || this.$route.path.startsWith("/share-deposit") || this.$route.path.startsWith("/share-withdrawal")  || this.$route.path.startsWith("/share-signup") || this.$route.path.startsWith("/share-login") || this.$route.path.startsWith("/share-forgot-password") || this.$route.path.startsWith("/share-reset-password");
+
+      const path = this.$route.path;
+
+      return (
+        path.startsWith("/share-profile") ||
+        path.startsWith("/adminchat") ||
+        path.startsWith("/share-terms") ||
+        path.startsWith("/share-payment-success") ||
+        path.startsWith("/share-deposit") ||
+        path.startsWith("/share-withdrawal") ||
+        path.startsWith("/share-signup") ||
+        path.startsWith("/share-login") ||
+        path.startsWith("/share-forgot-password") ||
+        path.startsWith("/share-reset-password")
+      );
+
+    },
+
   },
-  },
+
+
   methods: {
-    ...mapActions(['logIn', 'logOut']), // Map Vuex actions for login/logout
 
-  logout() {
-  this.logOut(); // Call Vuex action to clear state
-  this.$router.push("/login"); // Redirect to login page
-  },
+    ...mapActions([
+      "logIn",
+      "logOut",
+    ]),
 
-   resetTimer() {
+
+    // =========================
+    // LOGOUT
+    // =========================
+    logout() {
+
+      this.logOut();
+
+      this.$router.push("/login");
+
+    },
+
+
+    // =========================
+    // HEADER SCROLL BEHAVIOR
+    // =========================
+    handleScroll() {
+
+      const currentScrollPosition = window.scrollY;
+
+
+      // ---------------------------------
+      // At the very top
+      // ---------------------------------
+      if (currentScrollPosition <= 10) {
+
+        this.isHeaderHidden = false;
+
+        this.lastScrollPosition =
+          currentScrollPosition;
+
+        return;
+
+      }
+
+
+      // ---------------------------------
+      // Scrolling DOWN
+      // Hide header
+      // ---------------------------------
+      if (
+        currentScrollPosition >
+        this.lastScrollPosition
+      ) {
+
+        this.isHeaderHidden = true;
+
+      }
+
+
+      // ---------------------------------
+      // Scrolling UP
+      // Show header
+      // ---------------------------------
+      else if (
+        currentScrollPosition <
+        this.lastScrollPosition
+      ) {
+
+        this.isHeaderHidden = false;
+
+      }
+
+
+      this.lastScrollPosition =
+        currentScrollPosition;
+
+    },
+
+
+    // =========================
+    // RESET LOGOUT TIMER
+    // =========================
+    resetTimer() {
+
       clearTimeout(this.logoutTimer);
+
+
       this.logoutTimer = setTimeout(() => {
+
         if (this.isLoggedIn) {
+
           this.logout();
+
         }
-      }, 3600000); // 1 hour (60 min * 60 sec * 1000 ms)
+
+      }, 3600000);
+
     },
 
+
+    // =========================
+    // USER ACTIVITY
+    // =========================
     activityListener() {
-      window.addEventListener("mousemove", this.resetTimer);
-      window.addEventListener("keydown", this.resetTimer);
-      window.addEventListener("click", this.resetTimer);
+
+      window.addEventListener(
+        "mousemove",
+        this.resetTimer
+      );
+
+      window.addEventListener(
+        "keydown",
+        this.resetTimer
+      );
+
+      window.addEventListener(
+        "click",
+        this.resetTimer
+      );
+
       this.resetTimer();
+
     },
 
+  },
+
+
+  // =========================
+  // MOUNTED
+  // =========================
+  mounted() {
+
+    this.activityListener();
+
+
+    window.addEventListener(
+      "scroll",
+      this.handleScroll,
+      { passive: true }
+    );
+
+
+    this.lastScrollPosition =
+      window.scrollY;
 
   },
-  mounted() {
-    this.activityListener();
-  },
+
+
+  // =========================
+  // BEFORE UNMOUNT
+  // =========================
   beforeUnmount() {
-    window.removeEventListener("mousemove", this.resetTimer);
-    window.removeEventListener("keydown", this.resetTimer);
-    window.removeEventListener("click", this.resetTimer);
-    clearTimeout(this.logoutTimer);
+
+    window.removeEventListener(
+      "mousemove",
+      this.resetTimer
+    );
+
+    window.removeEventListener(
+      "keydown",
+      this.resetTimer
+    );
+
+    window.removeEventListener(
+      "click",
+      this.resetTimer
+    );
+
+    window.removeEventListener(
+      "scroll",
+      this.handleScroll
+    );
+
+
+    clearTimeout(
+      this.logoutTimer
+    );
+
   },
-  
+
 };
 </script>
 
 
-
 <style>
 
-.header,  {
-  color: yellow; /* Sets the text color to a golden shade */
-  text-align: center; /* Centers the text */
-  font-weight: bold; /* Makes the text bold for emphasis */
+/* =========================================
+   GLOBAL
+========================================= */
+
+* {
+  box-sizing: border-box;
 }
 
 
-/* Global App Styling */
-.app {
-  font-family: Arial, sans-serif;
-  background-color: lightblue;
-  min-height: 100vh;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  color: #333;
-}
-
-
-
-
-/* Header Styling */
-header {
-  background-color: #003366;
-  color: yellow;
-  padding: 10px 0;
-  border-bottom: 2px solid rgba(240, 236, 31, 0.81); /* Subtle highlight */
-}
-
-header h1 {
+html,
+body,
+#app {
   margin: 0;
-  font-size: 24px;
-}
-
-nav {
-  margin-top: 10px;
-  border-bottom: 2px solid rgba(240, 236, 31, 0.81); /* Subtle highlight */
-}
-
-nav a {
-  color: rgba(240, 236, 31, 0.81);
-  text-decoration: none;
-  margin: 0 10px;
-  
-}
-
-nav a:hover {
-  text-decoration: underline;
-}
-
-/* Main Content Area */
-main {
-  flex-grow: 1;
-  padding: 20px;
-}
-
-
-
-
-/* Footer Styling */
-footer {
-  background-color:rgb(0, 102, 48);
-  
-  padding: 10px 0;
-  
-}
-.logo-container {
-  display: flex;
-  align-items: center;
-}
-
-.logo {
-  width: 50px; /* Adjust size as needed */
-  height: 50px; /* Ensure it's a perfect circle */
-  margin-left: 15px; /* Moves the logo slightly outward */
-  border-radius: 50%; /* Makes it circular */
-  object-fit: cover; /* Ensures the image fills the circle properly */
-  margin-right: 10px;
-}
-
-
-
-
-/
-.footer p {
-  margin: 0;
-}
-.app {
-  background-image: url('@/assets/background4.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  min-height: 100vh;
+  padding: 0;
   width: 100%;
+  min-height: 100%;
 }
-/* Footer Styling */
-footer {
-  background-color: #003366; /* Matches header color */
-  color: yellow; /* Matches header text color */
-  padding: 15px 0;
-  text-align: center;
-  font-weight: bold;
+
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* =========================================
+   APP
+========================================= */
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.main-header {
+
+  width: 100%;
+
+  height: 65px;
+
+  background: #111;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 10px 30px;
+
+  border-bottom: 2px solid #e31b23;
+
+  position: relative;
+
+  z-index: 1002;
+
+  /*
+   * Header slides upward when hidden.
+   */
+  transform: translateY(0);
+
+  transition:
+    transform 0.3s ease;
+
+}
+
+
+/* =========================================
+   HIDDEN HEADER
+========================================= */
+
+.main-header.header-hidden {
+
+  transform: translateY(-100%);
+
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo-container {
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+
+.quick {
+
+  margin: 0;
+
+  color: white;
+
+  font-size: 26px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+
+}
+
+
+/* =========================================
+   MAIN NAVIGATION
+========================================= */
+
+.main-nav {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 24px;
+
+}
+
+
+.main-nav a {
+
+  color: #ffffff;
+
+  text-decoration: none;
+
   font-size: 14px;
-  border-top: 2px solid rgba(240, 236, 31, 0.81); /* Subtle highlight */
+
+  font-weight: 600;
+
+  padding: 8px 4px;
+
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+
+}
+
+
+.main-nav a:hover {
+
+  color: #e31b23;
+
+}
+
+
+.main-nav a.router-link-active {
+
+  color: #e31b23;
+
+}
+
+
+/* =========================================
+   TIMEFRAME
+========================================= */
+
+.timeframe-wrapper {
+
+  width: 100%;
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 1001;
+
+  background: white;
+
+  /*
+   * Normal position:
+   * directly underneath header.
+   */
+  margin-top: 0;
+
+  transition:
+    margin-top 0.3s ease;
+
+}
+
+
+/* =========================================
+   TIMEFRAME MOVES TO TOP
+   WHEN HEADER DISAPPEARS
+========================================= */
+
+.timeframe-wrapper.timeframe-raised {
+
+  /*
+   * Header is 65px tall.
+   * Remove its occupied space.
+   */
+  margin-top: -65px;
+
+}
+
+
+/* =========================================
+   BANNER CAROUSEL
+========================================= */
+
+.banner-wrapper {
+
+  width: 100%;
+
+  height: 60px;
+
+  margin: 0;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  position: relative;
+
+}
+
+
+/*
+ * Keep BannerCarousel itself responsible
+ * for its internal styling.
+ */
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+main {
+
+  width: 100%;
+
+  margin: 0;
+
+  padding: 0;
+
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+footer {
+
+  width: 100%;
+
+  background: #111;
+
+  color: #aaa;
+
+  text-align: center;
+
+  padding: 25px 20px;
+
+  margin-top: 30px;
+
+  border-top: 2px solid #e31b23;
+
+}
+
+
+/* =========================================
+   FOOTER NAVIGATION
+========================================= */
+
+.footer-nav {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 18px;
+
+  margin-bottom: 12px;
+
+}
+
+
+.footer-nav a {
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  padding: 5px 8px;
+
+  transition:
+    color 0.2s ease;
+
+}
+
+
+.footer-nav a:hover {
+
+  color: #e31b23;
+
+}
+
+
+.footer-nav a.router-link-active {
+
+  color: #e31b23;
+
+}
+
+
+.footer-divider {
+
+  color: #555;
+
+  font-size: 13px;
+
 }
 
 
 footer p {
+
   margin: 0;
-  color: yellow; /* Ensures text remains yellow */
-}
-.banner-wrapper {
-  height: 5rem; /* same as h-64 */
-  max-height: 5rem;
-  overflow: hidden;
-  border-radius: 1rem;
-  margin-bottom: 1rem;
+
+  color: #888;
+
+  font-size: 12px;
+
 }
 
 
+/* =========================================
+   PHONE
+========================================= */
 
+@media (max-width: 700px) {
+
+
+  /* ---------------------------------------
+     HEADER
+  --------------------------------------- */
+
+  .main-header {
+
+    height: auto;
+
+    min-height: 90px;
+
+    padding: 12px 15px;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+  }
+
+
+  /* ---------------------------------------
+     HIDDEN MOBILE HEADER
+  --------------------------------------- */
+
+  .main-header.header-hidden {
+
+    transform: translateY(-100%);
+
+  }
+
+
+  /* ---------------------------------------
+     LOGO
+  --------------------------------------- */
+
+  .quick {
+
+    font-size: 23px;
+
+  }
+
+
+  /* ---------------------------------------
+     NAV
+  --------------------------------------- */
+
+  .main-nav {
+
+    width: 100%;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px 18px;
+
+  }
+
+
+  .main-nav a {
+
+    font-size: 13px;
+
+    padding: 5px 3px;
+
+  }
+
+
+  /* ---------------------------------------
+     TIMEFRAME
+  --------------------------------------- */
+
+  .timeframe-wrapper {
+
+    margin-top: 0;
+
+  }
+
+
+  /*
+   * Mobile header is approximately 90px.
+   * Remove its occupied space when hidden.
+   */
+
+  .timeframe-wrapper.timeframe-raised {
+
+    margin-top: -90px;
+
+  }
+
+
+  /* ---------------------------------------
+     FOOTER
+  --------------------------------------- */
+
+  .footer-nav {
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+  }
+
+
+  .footer-nav a {
+
+    font-size: 13px;
+
+  }
+
+}
+
+
+/* =========================================
+   SMALL PHONE
+========================================= */
+
+@media (max-width: 400px) {
+
+
+  .main-header {
+
+    min-height: 85px;
+
+    padding: 10px;
+
+  }
+
+
+  .quick {
+
+    font-size: 21px;
+
+  }
+
+
+  .main-nav {
+
+    gap: 6px 12px;
+
+  }
+
+
+  .main-nav a {
+
+    font-size: 12px;
+
+  }
+
+
+  .timeframe-wrapper.timeframe-raised {
+
+    margin-top: -85px;
+
+  }
+
+
+  footer {
+
+    padding: 20px 10px;
+
+  }
+
+}
 
 </style>

@@ -33,7 +33,7 @@
     </div>
     <div class="prompt"> make at least two(2) selections!</div>
      <button class="submit-btn" :disabled="!isAnyChoiceSelected" @click="viewInvestmentSummary">
-     View Investment Summary
+     View Selection Summary
       </button>
      <!-- Popup Modal for Trend Graph -->
 <div v-if="showTrendModal" class="modal" @click.self="closeTrendModal">
@@ -46,7 +46,8 @@
 </template>
 
 <script>
-import TrendGraph from '@/components/TrendGraph.vue';
+import TrendGraph from "@/components/TrendGraph.vue";
+import { mapActions } from "vuex";
 
 export default {
   components: {
@@ -84,16 +85,35 @@ export default {
       selectedChoices: {}, // Tracks selected choices
       showTrendModal: false,
       selectedCategory: null,
+      trendInterval:null,
     };
   },
-  created() {
-    this.categories.forEach((category) => {
-      this.selectedChoices[category.id] = null;
-    });
+  
+  async created() {
 
-    // Fetch real odds from the backend
-    this.fetchOdds();
-  },
+  this.categories.forEach(category => {
+
+    this.selectedChoices[category.id] = null;
+
+  });
+
+  await this.fetchOdds();
+
+  await this.loadTrendCache();
+
+  this.startTrendRefresh();
+
+},
+
+beforeUnmount(){
+
+   if(this.trendInterval){
+
+      clearInterval(this.trendInterval);
+
+   }
+
+},
 
   computed: {
     isAnyChoiceSelected() {
@@ -103,6 +123,76 @@ export default {
 },
 
   methods: {
+
+    startTrendRefresh() {
+
+    const now = new Date();
+
+    // Minutes past the hour
+    const minute = now.getMinutes();
+
+    // Seconds
+    const second = now.getSeconds();
+
+    // Milliseconds
+    const ms = now.getMilliseconds();
+
+    // Next refresh minute: 1,6,11,16,21...
+    let nextMinute = Math.floor((minute - 1) / 5) * 5 + 6;
+
+    if (minute < 1) {
+
+        nextMinute = 1;
+
+    }
+
+    if (nextMinute >= 60) {
+
+        nextMinute = 61;
+
+    }
+
+    const next = new Date(now);
+
+    if (nextMinute === 61) {
+
+        next.setHours(next.getHours() + 1);
+
+        next.setMinutes(1);
+
+    } else {
+
+        next.setMinutes(nextMinute);
+
+    }
+
+    next.setSeconds(0);
+
+    next.setMilliseconds(0);
+
+    const delay = next - now;
+
+    setTimeout(() => {
+
+        this.loadTrendCache();
+
+        this.trendInterval = setInterval(() => {
+
+            this.loadTrendCache();
+
+        },300000);
+
+    },delay);
+
+},
+
+    ...mapActions([
+
+   "loadTrendCache"
+
+]),
+
+
     async fetchOdds() {
       try {
          console.log("Backend URL:", import.meta.env.VITE_APP_BASE_URL);

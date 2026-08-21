@@ -1,136 +1,199 @@
 <template>
-<div class="banner-carousel-wrapper">
-  <div class="w-full h-[160px] overflow-hidden relative">
-  <div class="w-full h-full relative">
-    <transition-group name="slide" tag="div" class="w-full h-full relative flex">
-      <div
-        v-if="currentSlide.type === 'text-banner'"
-        :key="currentSlideIndex"
-        class="banner-slide"
-        :class="currentSlide.bgClass"
+
+  <div class="banner-carousel-wrapper">
+
+    <div class="w-full h-[160px] overflow-hidden relative">
+
+      <transition-group
+        name="slide"
+        tag="div"
+        class="w-full h-full relative"
       >
-        <p class="banner-text">
-          {{ currentSlide.message }}
-        </p>
-      </div>
-    </transition-group>
-     </div>
-      </div>
+
+        <div
+          v-if="currentSlide"
+          :key="currentSlideIndex"
+          class="banner-slide"
+        >
+
+          <img
+            :src="currentSlide.image"
+            :alt="currentSlide.alt"
+            class="banner-image"
+          />
+
+        </div>
+
+      </transition-group>
+
+    </div>
+
   </div>
+
 </template>
 
 <script>
+
 export default {
+
   name: "BannerCarousel",
+
   data() {
+
     return {
+
       currentSlideIndex: 0,
+
       slides: [
+
         {
-        type: "text-banner",
-          message: "₦250 BONUS on SignUp",
-          bgClass: "bg-luck",
-        },
-        {
-          type: "text-banner",
-          message: "₦2,000,000 WON IN JUST 5 MINS!",
-          bgClass: "bg-purple",
-        },
-         {
-          type: "text-banner",
-          message: "NO GREED.NO FEAR.JUST win",
-          bgClass: "bg-orange",
-        },
-        {
-          type: "text-banner",
-          message: "₦250 BONUS on SignUp",
-          bgClass: "bg-luck",
-        },
-         {
-          type: "text-banner",
-          message: "ALWAYS 'VIEW TREND'",
-          bgClass: "bg-violet",
+          image: "/images/signup-bonus.jpg",
+          alt: "₦250 SignUp Bonus"
         },
 
         {
-          type: "text-banner",
-          message: "PLAY SMART. WIN FAST. REPEAT.",
-          bgClass: "bg-red",
+          image: "/images/win-5-mins.jpg",
+          alt: "Win in 5 mins"
         },
+
         {
-        type: "text-banner",
-          message: "₦250 BONUS on SignUp",
-          bgClass: "bg-luck",
+          image: "/images/view-trend.jpg",
+          alt: "Always View Trend"
         },
+
         {
-          type: "text-banner",
-          message: "YOUR WINNING JOURNEY STARTS HERE!",
-          bgClass: "bg-blue",
+          image: "/images/play-smart.jpg",
+          alt: "Play Smart, Win, Repeat"
         },
+
         {
-          type: "text-banner",
-          message: "NO STRESS, JUST PROFIT",
-          bgClass: "bg-green",
+          image: "/images/naija-howfar.jpg",
+          alt: "Naija Howfar"
         },
+
         {
-        type: "text-banner",
-          message: "₦250 BONUS on SignUp",
-          bgClass: "bg-luck",
-        },
-        {
-          type: "text-banner",
-          message: "NIGERIA’S #1 FOR FAST WINS 💸",
-          bgClass: "bg-yellow",
-        },
+          image: "/images/no-stress.jpg",
+          alt: "No Stress, Win"
+        }
+
       ],
-      interval: null,
+
+      interval: null
+
     };
+
   },
+
+
   computed: {
+
     currentSlide() {
-      return this.slides[this.currentSlideIndex];
-    },
+
+      return this.slides[
+        this.currentSlideIndex
+      ];
+
+    }
+
   },
+
+
   mounted() {
+
     this.startRotation();
+
   },
+
+
   beforeDestroy() {
+
     clearInterval(this.interval);
+
   },
+
+
   methods: {
+
     startRotation() {
-      this.interval = setInterval(() => {
-        this.currentSlideIndex =
-          (this.currentSlideIndex + 1) % this.slides.length;
-      }, 8000);
-    },
-  },
+
+      this.interval =
+        setInterval(() => {
+
+          this.currentSlideIndex =
+            (
+              this.currentSlideIndex + 1
+            ) %
+            this.slides.length;
+
+        }, 8000);
+
+    }
+
+  }
+
 };
+
 </script>
 
 <style>
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+
+  transition:
+    transform 0.8s ease-in-out,
+    opacity 0.8s ease-in-out;
+
 }
 
-.slide-enter-from,
-.slide-leave-to {
+.slide-enter-from {
+
   opacity: 0;
-  transform: translateX(30%);
+
+  transform:
+    translateX(100%);
+
+}
+
+.slide-leave-to {
+
+  opacity: 0;
+
+  transform:
+    translateX(-100%);
+
 }
 
 .banner-slide {
-  @apply w-full h-full flex items-center justify-center text-center px-6;
-  /* No need to manually position anymore — handled via Tailwind `absolute inset-0` */
+
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  overflow: hidden;
+
 }
-.banner-text {
-  font-size: 2rem;
-  font-weight: 900;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-  color: white;
-  line-height: 1.3;
+
+.banner-image {
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+
 }
 
 @media (min-width: 768px) {

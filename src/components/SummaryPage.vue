@@ -1,6 +1,6 @@
 <template>
   <div class="summary-page">
-    <h2>Investment Summary</h2>
+    <h2>Selection Summary</h2>
 
     <div class="investment-summary">
       <h3>Selected Categories and Choices:</h3>
@@ -13,7 +13,7 @@
     </div>
 
     <div class="investment-amount">
-      <label for="investmentAmount">Investment Amount (min N200):</label>
+      <label for="investmentAmount">Amount (min N200):</label>
       <input
         type="number"
         id="investmentAmount"
@@ -34,7 +34,7 @@
     </div>
 
     <div class="total-potential-return">
-      <h3>Total Potential Return: ₦{{ totalPotentialReturn | currency }}</h3>
+      <h3>Total Potential Win: ₦{{ totalPotentialReturn | currency }}</h3>
     </div>
 
     <div class="timeframe-selection">
@@ -55,7 +55,7 @@
     </div>
 
     <div class="final-summary">
-      <button :disabled="!isFormValid" @click="submitInvestment">Submit Investment</button>
+      <button :disabled="!isFormValid" @click="submitInvestment">Submit Selection</button>
     </div>
   </div>
 </template>
@@ -88,21 +88,41 @@ export default {
       );
     },
     totalPotentialReturn() {
-      const netInvestment = this.investmentAmount * 0.95;
-      let totalROI = 0;
+  if (this.selectedInvestments.length === 0) {
+    return 0;
+  }
 
-      this.selectedInvestments.forEach((investment) => {
-        totalROI += this.calculateROI(investment.odds);
-      });
+  let totalROI = 0;
 
-      return Math.round(totalROI + netInvestment);
-    },
+  this.selectedInvestments.forEach((investment) => {
+    totalROI += this.calculateROI(investment.odds);
+  });
+
+  return Number(totalROI.toFixed(2));
+},
+
+ 
   },
   methods: {
     calculateROI(odds) {
-      const netInvestment = this.investmentAmount * 0.95;
-      return netInvestment * (odds / 100);
-    },
+  const netAmount = Number(
+    (this.investmentAmount * 0.95).toFixed(2)
+  );
+
+  const numberOfInvestments =
+    this.selectedInvestments.length;
+
+  if (numberOfInvestments === 0) {
+    return 0;
+  }
+
+  return Number(
+    (
+      (netAmount / numberOfInvestments) +
+      (netAmount * (Number(odds) / 100))
+    ).toFixed(2)
+  );
+},
     addToInvestment(amount) {
       this.investmentAmount += amount;
     },
@@ -137,16 +157,40 @@ const deductionResponse = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}
 
         this.$store.commit('updateBalance', deductionResponse.data.newBalance);
 
-        const formattedInvestments = this.selectedInvestments.map((investment) => ({
-          userId,
-          category: investment.name,
-          choice: investment.choice,
-          amount: this.investmentAmount,
-          timeframe: this.selectedTimeframe,
-          odds: investment.odds,
-          status: "awaiting",
-          outcome: null,
-        }));
+        const netInvestment = Number(
+  (this.investmentAmount * 0.95).toFixed(2)
+);
+
+const netAmount = Number(
+  (this.investmentAmount * 0.95).toFixed(2)
+);
+
+const numberOfInvestments =
+  this.selectedInvestments.length;
+
+const formattedInvestments =
+  this.selectedInvestments.map((investment) => {
+
+    const roi = Number(
+      (
+        (netAmount / numberOfInvestments) +
+        (netAmount * (investment.odds / 100))
+      ).toFixed(2)
+    );
+
+    return {
+      userId,
+      category: investment.name,
+      choice: investment.choice,
+      amount: netAmount,
+      roi,
+      timeframe: this.selectedTimeframe,
+      odds: investment.odds,
+      status: "awaiting",
+      outcome: null,
+    };
+
+  });
 
         const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/investments/submit-investment`, {
   investments: formattedInvestments,

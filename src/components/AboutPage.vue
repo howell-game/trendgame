@@ -1,14 +1,14 @@
 <template>
   <div class="about-container">
     <v-card class="card">
-      <v-card-title>About QuickStock9ja</v-card-title>
-      <v-card-text>Empowering smart investments with real-time supply and demand analysis.</v-card-text>
+      <v-card-title>About TrendGame</v-card-title>
+      <v-card-text>Empowering smart selections with real-time supply and demand analysis.</v-card-text>
     </v-card>
 
     <section class="overview">
       <v-card class="card">
-        <v-card-title>What is QuickStock9ja?</v-card-title>
-        <v-card-text>QuickStock9ja is an investment platform that allows users to analyze market trends and make informed investment decisions.</v-card-text>
+        <v-card-title>What is TrendGame?</v-card-title>
+        <v-card-text>TrendGame is a platform that allows users to analyze market trends and make informed direction decisions.</v-card-text>
       </v-card>
     </section>
 
@@ -18,7 +18,7 @@
         <v-card-text>
           <ul>
             <li>📊 Real-time Supply & Demand Trend Analysis</li>
-            <li>💰 Flexible Investment Plans (5m, 1h, 1d, etc.)</li>
+            <li>💰 Flexible Timeframe Plans (5m, 1h, 1d, etc.)</li>
             <li>⚡ Automated Outcome Calculation</li>
             <li>💳 Secure Deposit & Withdrawal System</li>
             <li>🖥 User-Friendly Dashboard for Easy Monitoring</li>
@@ -34,9 +34,9 @@
           <div class="steps">
             <div class="step">✅ Sign up & Fund your account.</div>
             <div class="step">📊 Choose a Category & Predict Market Movement.</div>
-            <div class="step">⏳ Set an Investment Timeframe & Confirm.</div>
+            <div class="step">⏳ Set a Selection Timeframe & Confirm.</div>
             <div class="step">📈 Monitor Live Trends & Results.</div>
-            <div class="step">💰 Withdraw Profits or Reinvest.</div>
+            <div class="step">💰 Withdraw Profits or Re-select.</div>
           </div>
         </v-card-text>
       </v-card>
@@ -45,7 +45,7 @@
     <section class="security">
       <v-card class="card">
         <v-card-title>Security & Transparency</v-card-title>
-        <v-card-text>All transactions are securely processed using Flutterwave, and investment outcomes are data-driven, ensuring fairness.</v-card-text>
+        <v-card-text>All transactions are securely processed using Flutterwave, and outcomes are data-driven, ensuring fairness.</v-card-text>
       </v-card>
     </section>
 
@@ -56,10 +56,10 @@
           Reach out to us anytime for support.
           <ul>
           <li>You can chat with us <router-link to="/chat">here</router-link></li> 
-            <li>📧 Email: support@quickstock9ja.com</li>
+            <li>📧 Email: support@trendgame.com</li>
            <li>
   🔗 Follow us on Twitter & 
-  <a href="https://web.facebook.com/search/top?q=quickstock9ja" target="_blank" rel="noopener noreferrer">Facebook</a>
+  <a href="https://web.facebook.com/search/top?q=trendgame" target="_blank" rel="noopener noreferrer">Facebook</a>
 </li>
 
           </ul>
