@@ -47,32 +47,32 @@ export default {
       slides: [
 
         {
-          image: "/images/signup-bonus.jpg",
+          image: "`${import.meta.env.BASE_URL}images/signup-bonus.jpg`",
           alt: "₦250 SignUp Bonus"
         },
 
         {
-          image: "/images/win-5-mins.jpg",
+          image: "`${import.meta.env.BASE_URL}images/win-5-mins.jpg`",
           alt: "Win in 5 mins"
         },
 
         {
-          image: "/images/view-trend.jpg",
+          image: "`${import.meta.env.BASE_URL}images/view-trend.jpg`",
           alt: "Always View Trend"
         },
 
         {
-          image: "/images/play-smart.jpg",
+          image: "`${import.meta.env.BASE_URL}images/play-smart.jpg`",
           alt: "Play Smart, Win, Repeat"
         },
 
         {
-          image: "/images/naija-howfar.jpg",
+          image: "`${import.meta.env.BASE_URL}images/naija-howfar.jpg`",
           alt: "Naija Howfar"
         },
 
         {
-          image: "/images/no-stress.jpg",
+          image: "`${import.meta.env.BASE_URL}images/no-stress.jpg`",
           alt: "No Stress, Win"
         }
 
