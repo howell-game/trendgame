@@ -16,7 +16,7 @@
       <div class="section-title real-title">
 
         <span>
-          Real Receipts
+          Real
         </span>
 
         <span class="receipt-type real-type">
@@ -34,7 +34,7 @@
       >
 
         <p>
-          No real investments found.
+          No real selections found.
         </p>
 
       </div>
@@ -202,7 +202,7 @@
       <div class="section-title demo-title">
 
         <span>
-          Demo Receipts
+          Demo
         </span>
 
         <span class="receipt-type demo-type">
@@ -220,7 +220,7 @@
       >
 
         <p>
-          No demo investments found.
+          No demo selections found.
         </p>
 
       </div>

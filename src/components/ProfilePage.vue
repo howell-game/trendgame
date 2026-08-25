@@ -16,7 +16,7 @@
     class="refill-button"
     @click="refillDemoBalance"
   >
-    Refill Balance
+    Refill Coins
   </button>
 </div>
 
@@ -32,7 +32,7 @@
       </div>
       <h1>Welcome, {{ userName }}</h1>
       <p><strong class="highlight-text">User ID:</strong> <span class="bold-yellow">{{ userId }}</span></p>
-      <p><strong class="highlight-text">Balance:</strong> <span class="bold-yellow">{{ roundedBalance }}</span></p>
+      <p><strong class="highlight-text">Coins:</strong> <span class="bold-yellow">{{ roundedBalance }}</span></p>
     </div>
 
     <div class="button-container">

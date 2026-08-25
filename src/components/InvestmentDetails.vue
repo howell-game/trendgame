@@ -7,7 +7,7 @@
       v-if="displayedInvestments.length===0"
       class="no-investments"
     >
-      No investments found.
+      Loading! Have you made selections?.
     </div>
 
     <ul v-else>

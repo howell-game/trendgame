@@ -7,22 +7,22 @@
       <ul class="category-list">
         <li v-for="investment in selectedInvestments" :key="investment.id">
           <strong>{{ investment.name }}</strong>: {{ investment.choice }} - Odds: ({{ investment.odds }}%)
-          <span class="roi">- Potential ROI: {{ calculateROI(investment.odds) | currency }}</span>
+          <span class="roi">- Potential ROC: {{ calculateROI(investment.odds) | currency }}</span>
         </li>
       </ul>
     </div>
 
     <div class="investment-amount">
-      <label for="investmentAmount">Amount (min N200):</label>
+      <label for="investmentAmount">Coins (min Coins200):</label>
       <input
         type="number"
         id="investmentAmount"
         v-model="investmentAmount"
         min="200"
         required
-        placeholder="Enter your investment amount"
+        placeholder="Enter your coins amount"
       />
-      <div><strong>Click to add amount</strong></div>
+      <div><strong>Click to add coins</strong></div>
 
       <div class="amount-buttons">
         <button @click="addToInvestment(100)">+100</button>
@@ -34,7 +34,7 @@
     </div>
 
     <div class="total-potential-return">
-      <h3>Total Potential Win: ₦{{ totalPotentialReturn | currency }}</h3>
+      <h3>Total Potential Win: Coins{{ totalPotentialReturn | currency }}</h3>
     </div>
 
     <div class="timeframe-selection">
@@ -152,7 +152,7 @@ const deductionResponse = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}
 
 
         if (!deductionResponse.data.newBalance) {
-          throw new Error("Balance deduction failed. Please check your funds.");
+          throw new Error("Coins deduction failed. Please check your available Coins.");
         }
 
         this.$store.commit('updateBalance', deductionResponse.data.newBalance);
