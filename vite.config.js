@@ -5,7 +5,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
-  base: '/trendgame/',// ✅ VERY IMPORTANT for Render
+  base: '/',// ✅ VERY IMPORTANT for Render
   server: {
     host: true,
   },
