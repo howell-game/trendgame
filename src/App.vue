@@ -1,3 +1,4 @@
+```vue
 <template>
   <div class="app">
 
@@ -145,10 +146,17 @@ export default {
 
       lastScrollPosition: 0,
 
+
       // =========================
       // LOGOUT TIMER
       // =========================
       logoutTimer: null,
+
+
+      // =========================
+      // 30 MINUTES
+      // =========================
+      inactivityLimit: 30 * 60 * 1000,
 
     };
 
@@ -211,8 +219,16 @@ export default {
     // =========================
     logout() {
 
+      // Remove inactivity tracking time
+      localStorage.removeItem("lastAppActivity");
+
+      // Clear timer
+      clearTimeout(this.logoutTimer);
+
+      // Logout from Vuex
       this.logOut();
 
+      // Go to login page
       this.$router.push("/login");
 
     },
@@ -231,7 +247,11 @@ export default {
       // ---------------------------------
       if (currentScrollPosition <= 10) {
 
-        this.isHeaderHidden = false;
+        if (this.isHeaderHidden) {
+
+          this.isHeaderHidden = false;
+
+        }
 
         this.lastScrollPosition =
           currentScrollPosition;
@@ -250,7 +270,11 @@ export default {
         this.lastScrollPosition
       ) {
 
-        this.isHeaderHidden = true;
+        if (!this.isHeaderHidden) {
+
+          this.isHeaderHidden = true;
+
+        }
 
       }
 
@@ -264,7 +288,11 @@ export default {
         this.lastScrollPosition
       ) {
 
-        this.isHeaderHidden = false;
+        if (this.isHeaderHidden) {
+
+          this.isHeaderHidden = false;
+
+        }
 
       }
 
@@ -280,7 +308,100 @@ export default {
     // =========================
     resetTimer() {
 
+      // Only track inactivity
+      // when a user is logged in
+      if (!this.isLoggedIn) {
+
+        return;
+
+      }
+
+
+      // Save current activity time
+      localStorage.setItem(
+        "lastAppActivity",
+        Date.now().toString()
+      );
+
+
+      // Clear old timer
       clearTimeout(this.logoutTimer);
+
+
+      // Start new 30-minute timer
+      this.logoutTimer = setTimeout(() => {
+
+        if (this.isLoggedIn) {
+
+          this.logout();
+
+        }
+
+      }, this.inactivityLimit);
+
+    },
+
+
+    // =========================
+    // CHECK INACTIVITY
+    // =========================
+    checkInactivity() {
+
+      if (!this.isLoggedIn) {
+
+        return;
+
+      }
+
+
+      const lastActivity =
+        localStorage.getItem(
+          "lastAppActivity"
+        );
+
+
+      // No previous activity
+      if (!lastActivity) {
+
+        this.resetTimer();
+
+        return;
+
+      }
+
+
+      const elapsedTime =
+        Date.now() -
+        Number(lastActivity);
+
+
+      // ---------------------------------
+      // USER HAS BEEN AWAY
+      // FOR 30 MINUTES OR MORE
+      // ---------------------------------
+      if (
+        elapsedTime >=
+        this.inactivityLimit
+      ) {
+
+        this.logout();
+
+        return;
+
+      }
+
+
+      // ---------------------------------
+      // USER RETURNED BEFORE
+      // 30 MINUTES
+      // ---------------------------------
+
+      clearTimeout(this.logoutTimer);
+
+
+      const remainingTime =
+        this.inactivityLimit -
+        elapsedTime;
 
 
       this.logoutTimer = setTimeout(() => {
@@ -291,13 +412,30 @@ export default {
 
         }
 
-      }, 3600000);
+      }, remainingTime);
 
     },
 
 
     // =========================
-    // USER ACTIVITY
+    // HANDLE APP UNMOUNT
+    // =========================
+    handleBeforeUnload() {
+
+      if (this.isLoggedIn) {
+
+        localStorage.setItem(
+          "lastAppActivity",
+          Date.now().toString()
+        );
+
+      }
+
+    },
+
+
+    // =========================
+    // USER ACTIVITY LISTENERS
     // =========================
     activityListener() {
 
@@ -306,17 +444,46 @@ export default {
         this.resetTimer
       );
 
+
       window.addEventListener(
         "keydown",
         this.resetTimer
       );
+
 
       window.addEventListener(
         "click",
         this.resetTimer
       );
 
-      this.resetTimer();
+
+      window.addEventListener(
+        "touchstart",
+        this.resetTimer,
+        { passive: true }
+      );
+
+
+      // Check previous inactivity
+      // when app starts
+      this.checkInactivity();
+
+    },
+
+
+    // =========================
+    // USER RETURNS TO APP
+    // =========================
+    handleVisibilityChange() {
+
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+
+        this.checkInactivity();
+
+      }
 
     },
 
@@ -328,8 +495,38 @@ export default {
   // =========================
   mounted() {
 
+    // -------------------------
+    // ACTIVITY / LOGOUT SYSTEM
+    // -------------------------
+
     this.activityListener();
 
+
+    // -------------------------
+    // CHECK WHEN USER RETURNS
+    // TO THE APP/TAB
+    // -------------------------
+
+    document.addEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange
+    );
+
+
+    // -------------------------
+    // SAVE TIME WHEN APP
+    // IS BEING CLOSED
+    // -------------------------
+
+    window.addEventListener(
+      "beforeunload",
+      this.handleBeforeUnload
+    );
+
+
+    // -------------------------
+    // HEADER SCROLL
+    // -------------------------
 
     window.addEventListener(
       "scroll",
@@ -349,26 +546,74 @@ export default {
   // =========================
   beforeUnmount() {
 
+    // -------------------------
+    // SAVE LAST ACTIVITY TIME
+    // -------------------------
+
+    this.handleBeforeUnload();
+
+
+    // -------------------------
+    // REMOVE ACTIVITY LISTENERS
+    // -------------------------
+
     window.removeEventListener(
       "mousemove",
       this.resetTimer
     );
+
 
     window.removeEventListener(
       "keydown",
       this.resetTimer
     );
 
+
     window.removeEventListener(
       "click",
       this.resetTimer
     );
+
+
+    window.removeEventListener(
+      "touchstart",
+      this.resetTimer
+    );
+
+
+    // -------------------------
+    // REMOVE VISIBILITY LISTENER
+    // -------------------------
+
+    document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange
+    );
+
+
+    // -------------------------
+    // REMOVE UNLOAD LISTENER
+    // -------------------------
+
+    window.removeEventListener(
+      "beforeunload",
+      this.handleBeforeUnload
+    );
+
+
+    // -------------------------
+    // REMOVE SCROLL LISTENER
+    // -------------------------
 
     window.removeEventListener(
       "scroll",
       this.handleScroll
     );
 
+
+    // -------------------------
+    // CLEAR TIMER
+    // -------------------------
 
     clearTimeout(
       this.logoutTimer
@@ -394,15 +639,25 @@ export default {
 html,
 body,
 #app {
+
   margin: 0;
+
   padding: 0;
+
   width: 100%;
+
   min-height: 100%;
+
 }
 
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
 }
 
 
@@ -411,8 +666,11 @@ body {
 ========================================= */
 
 .app {
+
   width: 100%;
+
   min-height: 100vh;
+
 }
 
 
@@ -442,9 +700,6 @@ body {
 
   z-index: 1002;
 
-  /*
-   * Header slides upward when hidden.
-   */
   transform: translateY(0);
 
   transition:
@@ -459,7 +714,8 @@ body {
 
 .main-header.header-hidden {
 
-  transform: translateY(-100%);
+  transform:
+    translateY(-100%);
 
 }
 
@@ -556,30 +812,26 @@ body {
 
   background: white;
 
-  /*
-   * Normal position:
-   * directly underneath header.
-   */
-  margin-top: 0;
-
-  transition:
-    margin-top 0.3s ease;
-
 }
 
 
+/*
+ * IMPORTANT:
+ *
+ * We DO NOT use negative margin-top.
+ *
+ * This keeps the document layout stable
+ * and prevents the page shaking issue.
+ */
+
+
 /* =========================================
-   TIMEFRAME MOVES TO TOP
    WHEN HEADER DISAPPEARS
 ========================================= */
 
 .timeframe-wrapper.timeframe-raised {
 
-  /*
-   * Header is 65px tall.
-   * Remove its occupied space.
-   */
-  margin-top: -65px;
+  top: 0;
 
 }
 
@@ -603,12 +855,6 @@ body {
   position: relative;
 
 }
-
-
-/*
- * Keep BannerCarousel itself responsible
- * for its internal styling.
- */
 
 
 /* =========================================
@@ -752,7 +998,8 @@ footer p {
 
   .main-header.header-hidden {
 
-    transform: translateY(-100%);
+    transform:
+      translateY(-100%);
 
   }
 
@@ -805,14 +1052,9 @@ footer p {
   }
 
 
-  /*
-   * Mobile header is approximately 90px.
-   * Remove its occupied space when hidden.
-   */
-
   .timeframe-wrapper.timeframe-raised {
 
-    margin-top: -90px;
+    top: 0;
 
   }
 
@@ -878,7 +1120,7 @@ footer p {
 
   .timeframe-wrapper.timeframe-raised {
 
-    margin-top: -85px;
+    top: 0;
 
   }
 
@@ -892,3 +1134,4 @@ footer p {
 }
 
 </style>
+```

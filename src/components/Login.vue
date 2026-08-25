@@ -1,12 +1,26 @@
 <template>
   <div class="login">
     <h2>Login</h2>
-    <form @submit.prevent="handleLogin">
+    <form @submit.prevent="handleLogin" autocomplete="on">
       <label for="email">Email</label>
-      <input id="email" type="email" v-model="email" placeholder="Email" required />
+      <input
+  id="email"
+  type="email"
+  v-model="email"
+  placeholder="Email"
+  autocomplete="email"
+  required
+/>
       
       <label for="password">Password</label>
-      <input id="password" type="password" v-model="password" placeholder="Password" required />
+      <input
+  id="password"
+  type="password"
+  v-model="password"
+  placeholder="Password"
+  autocomplete="current-password"
+  required
+/>
       
       <button type="submit">Login</button>
     </form>
@@ -24,41 +38,59 @@ export default {
     return {
       email: '',
       password: '',
-      message: '', // To store error messages
+      message: '',
     };
   },
+
+  mounted() {
+    // Always start with an empty password field
+    this.password = '';
+  },
+
   methods: {
     async handleLogin() {
       try {
-        // Make the API request to log in
         const response = await axios.post(
-  `${import.meta.env.VITE_APP_BASE_URL}/auth/login`,
-  {
-    email: this.email,
-    password: this.password,
-  }
-);
+          `${import.meta.env.VITE_APP_BASE_URL}/auth/login`,
+          {
+            email: this.email,
+            password: this.password,
+          }
+        );
 
-
-        // Destructure response data
         const { token, user } = response.data;
 
-        // Store user details in Vuex and localStorage
-        this.$store.dispatch('logIn', { name: user.name, userId: user.userId, balance: user.balance, token });
+        this.$store.dispatch('logIn', {
+          name: user.name,
+          userId: user.userId,
+          balance: user.balance,
+          token
+        });
 
-        // Navigate to profile page with user ID
+        // Clear password before leaving login page
+        this.password = '';
+
         this.$router.push(`/profile/${user.userId}`);
+
       } catch (error) {
-        // Handle errors and display appropriate message
+
+        // Also clear password after a failed login
+        this.password = '';
+
         const errorMessage = error.response?.data?.message;
 
         if (errorMessage && errorMessage.includes('blocked')) {
-          this.message = errorMessage; // Show block message
+          this.message = errorMessage;
         } else {
-          this.message = errorMessage || 'An error occurred. Please try again.';
+          this.message =
+            errorMessage ||
+            'An error occurred. Please try again.';
         }
 
-        console.error('Login failed:', this.message);
+        console.error(
+          'Login failed:',
+          this.message
+        );
       }
     },
   },
