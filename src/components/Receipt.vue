@@ -77,7 +77,7 @@
               <p>
 
                 <span class="label">
-                  Investment Return:
+                  Coins Return:
                 </span>
 
                 {{ Math.round(investment.share) }}
@@ -88,7 +88,7 @@
               <p>
 
                 <span class="label">
-                  Investment Amount:
+                  Coins Amount:
                 </span>
 
                 {{ investment.investmentAmount }}
@@ -263,7 +263,7 @@
               <p>
 
                 <span class="label">
-                  Investment Return:
+                  Coins Return:
                 </span>
 
                 {{ Math.round(investment.share) }}
@@ -274,7 +274,7 @@
               <p>
 
                 <span class="label">
-                  Investment Amount:
+                  Coins Amount:
                 </span>
 
                 {{ investment.investmentAmount }}
