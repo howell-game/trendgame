@@ -53,16 +53,22 @@ const routes = [
   path: "/adminchat",
   name: "AdminChat",
   component: AdminChat,
+
   beforeEnter: () => {
 
-    const adminToken = localStorage.getItem("adminToken");
+    const adminLoggedIn =
+      localStorage.getItem("adminLoggedIn");
 
-    if (!adminToken) {
+    if (adminLoggedIn !== "true") {
+
       return "/adminlogin";
+
     }
 
     return true;
-  }
+
+  },
+
 },
  
   { path: '/verify/:userId', name: 'Verify', component: () => import('../views/Verify.vue') },

@@ -203,6 +203,18 @@
 
         </router-link>
 
+        <button
+  class="logout-button"
+  @click="logout"
+>
+  <span>🚪</span>
+
+  <div>
+    <strong>Logout</strong>
+    <small>Sign out</small>
+  </div>
+</button>
+
 
       </nav>
 
@@ -1084,6 +1096,50 @@ export default {
         .toLocaleString("en-NG");
 
     },
+
+    // ==================================================
+// ADMIN LOGOUT
+// ==================================================
+
+logout() {
+
+  const confirmLogout =
+    window.confirm(
+      "Are you sure you want to logout?"
+    );
+
+  if (!confirmLogout) {
+
+    return;
+
+  }
+
+
+  // ==========================================
+  // REMOVE ADMIN LOGIN DATA
+  // ==========================================
+
+  localStorage.removeItem("admin");
+
+  localStorage.removeItem(
+    "adminLoggedIn"
+  );
+
+
+  console.log(
+    "🚪 Admin logged out."
+  );
+
+
+  // ==========================================
+  // REDIRECT TO ADMIN LOGIN
+  // ==========================================
+
+  this.$router.push(
+    "/adminlogin"
+  );
+
+},
 
 
     // ==================================================
