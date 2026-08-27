@@ -634,160 +634,322 @@
         <!-- ===============================================
              WITHDRAWAL LIST
         ================================================ -->
-
         <div
-          v-for="transaction in withdrawalTransactions"
-          :key="transaction.id"
-          class="withdrawal-card"
-        >
+  v-for="transaction in withdrawalTransactions"
+  :key="transaction.id"
+  class="withdrawal-card"
+>
+
+  <!-- ==========================================
+       CLICKABLE AMOUNT
+  =========================================== -->
+
+  <div
+    class="withdrawal-summary"
+    @click="toggleWithdrawal(transaction.id)"
+  >
+
+    <div class="withdrawal-amount">
+
+      <strong>
+        ₦{{ formatNumber(transaction.amount) }}
+      </strong>
+
+      <small>
+        {{ transaction.transactionId }}
+      </small>
+
+    </div>
 
 
-          <div class="withdrawal-summary">
+    <span class="dropdown-arrow">
 
-            <div>
+      {{
+        openedWithdrawal === transaction.id
+          ? "▲"
+          : "▼"
+      }}
 
-              <strong>
-                ₦{{ formatNumber(transaction.amount) }}
-              </strong>
+    </span>
 
-              <small>
-                {{ transaction.transactionId }}
-              </small>
-
-            </div>
-
-
-            <button
-              class="dropdown-button"
-              @click="
-                toggleWithdrawal(transaction.id)
-              "
-            >
-
-              {{ openedWithdrawal === transaction.id
-                ? "▲"
-                : "▼"
-              }}
-
-            </button>
-
-          </div>
+  </div>
 
 
 
-          <!-- ==========================================
-               WITHDRAWAL DETAILS
-          =========================================== -->
+  <!-- ==========================================
+       TRANSACTION DETAILS
+  =========================================== -->
 
-          <div
-            v-if="
-              openedWithdrawal === transaction.id
-            "
-            class="withdrawal-details"
-          >
+  <div
+    v-if="openedWithdrawal === transaction.id"
+    class="withdrawal-details"
+  >
 
-            <div>
+    <!-- USER ID -->
 
-              <span>
-                Bank Name
-              </span>
+    <div class="transaction-detail">
 
-              <strong>
-                {{ transaction.bankName || "N/A" }}
-              </strong>
+      <span>
+        User ID
+      </span>
 
-            </div>
+      <strong>
+        {{ transaction.userId || "N/A" }}
+      </strong>
 
-
-            <div>
-
-              <span>
-                Account Number
-              </span>
-
-              <strong>
-                {{ transaction.accountNumber || "N/A" }}
-              </strong>
-
-            </div>
+    </div>
 
 
-            <div>
+    <!-- AMOUNT -->
 
-              <span>
-                Date
-              </span>
+    <div class="transaction-detail">
 
-              <strong>
-                {{ formatDate(transaction.createdAt) }}
-              </strong>
+      <span>
+        Amount
+      </span>
 
-            </div>
+      <strong>
+        ₦{{ formatNumber(transaction.amount) }}
+      </strong>
 
-
-            <div>
-
-              <span>
-                Transaction Type
-              </span>
-
-              <strong>
-                {{ transaction.transactionType }}
-              </strong>
-
-            </div>
+    </div>
 
 
-            <div>
+    <!-- TRANSACTION ID -->
 
-              <span>
-                Reference
-              </span>
+    <div class="transaction-detail">
 
-              <strong>
-                {{ transaction.reference || "N/A" }}
-              </strong>
+      <span>
+        Transaction ID
+      </span>
 
-            </div>
+      <strong>
+        {{ transaction.transactionId || "N/A" }}
+      </strong>
 
-
-            <div>
-
-              <span>
-                Status
-              </span>
-
-              <strong>
-                {{ transaction.status }}
-              </strong>
-
-            </div>
+    </div>
 
 
-            <!-- RESOLVE BUTTON -->
+    <!-- REFERENCE -->
 
-            <button
-              class="resolve-button"
-              :disabled="
-                resolvingTransaction === transaction.id
-              "
-              @click="
-                resolveWithdrawal(transaction.id)
-              "
-            >
+    <div class="transaction-detail">
 
-              {{
-                resolvingTransaction === transaction.id
-                  ? "Resolving..."
-                  : "Resolve Withdrawal"
-              }}
+      <span>
+        Reference
+      </span>
 
-            </button>
+      <strong>
+        {{ transaction.reference || "N/A" }}
+      </strong>
 
-          </div>
+    </div>
 
 
-        </div>
+    <!-- FLUTTERWAVE ID -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Flutterwave ID
+      </span>
+
+      <strong>
+        {{ transaction.flutterwaveId || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- BANK NAME -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Bank
+      </span>
+
+      <strong>
+        {{ transaction.bankName || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- BANK CODE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Bank Code
+      </span>
+
+      <strong>
+        {{ transaction.bankCode || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- ACCOUNT NAME -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Account Name
+      </span>
+
+      <strong>
+        {{ transaction.accountName || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- ACCOUNT NUMBER -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Account Number
+      </span>
+
+      <strong>
+        {{ transaction.accountNumber || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- TRANSACTION TYPE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Transaction Type
+      </span>
+
+      <strong>
+        {{ transaction.transactionType || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Status
+      </span>
+
+      <strong>
+        {{ transaction.status || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- CURRENCY -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Currency
+      </span>
+
+      <strong>
+        {{ transaction.currency || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- PAYMENT TYPE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Payment Type
+      </span>
+
+      <strong>
+        {{ transaction.paymentType || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- PROCESSOR RESPONSE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Processor Response
+      </span>
+
+      <strong>
+        {{ transaction.processorResponse || "N/A" }}
+      </strong>
+
+    </div>
+
+
+    <!-- CREATED DATE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Created
+      </span>
+
+      <strong>
+        {{ formatDate(transaction.createdAt) }}
+      </strong>
+
+    </div>
+
+
+    <!-- UPDATED DATE -->
+
+    <div class="transaction-detail">
+
+      <span>
+        Last Updated
+      </span>
+
+      <strong>
+        {{ formatDate(transaction.updatedAt) }}
+      </strong>
+
+    </div>
+
+
+    <!-- ==========================================
+         VERIFY BUTTON
+    =========================================== -->
+
+    <button
+      class="resolve-button"
+      :disabled="
+        resolvingTransaction === transaction.id
+      "
+      @click.stop="
+        resolveWithdrawal(transaction.id)
+      "
+    >
+
+      {{
+        resolvingTransaction === transaction.id
+          ? "Checking Flutterwave..."
+          : "Verify with Flutterwave"
+      }}
+
+    </button>
+
+  </div>
+
+</div>
 
       </section>
 
@@ -1028,50 +1190,42 @@ export default {
 
     async resolveWithdrawal(id) {
 
-      try {
+  try {
 
-        this.resolvingTransaction = id;
+    this.resolvingTransaction = id;
 
+    const response = await axios.put(
+      `${this.API_URL}/api/transactions/admin/transactions/${id}/verify-withdrawal`
+    );
 
-        await axios.put(
-          `${this.API_URL}/api/admin/transactions/${id}/resolve`
-        );
+    console.log(
+      "Withdrawal verification result:",
+      response.data
+    );
 
+    this.openedWithdrawal = null;
 
-        // ==========================================
-        // CLOSE CURRENT DROPDOWN
-        // ==========================================
+    await this.loadDashboard();
 
-        this.openedWithdrawal = null;
+  } catch (error) {
 
+    console.error(
+      "Failed to verify withdrawal:",
+      error
+    );
 
-        // ==========================================
-        // REFRESH DASHBOARD
-        // ==========================================
+    alert(
+      error.response?.data?.error ||
+      "Failed to verify withdrawal."
+    );
 
-        await this.loadDashboard();
+  } finally {
 
+    this.resolvingTransaction = null;
 
-      } catch (error) {
+  }
 
-        console.error(
-          "Failed to resolve withdrawal:",
-          error
-        );
-
-
-        alert(
-          error.response?.data?.error ||
-          "Failed to resolve withdrawal."
-        );
-
-      } finally {
-
-        this.resolvingTransaction = null;
-
-      }
-
-    },
+}
 
 
   },
@@ -1950,6 +2104,133 @@ export default {
 
   }
 
+}
+
+/* ==========================================
+   WITHDRAWAL CARD
+========================================== */
+
+.withdrawal-card {
+  margin-top: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+}
+
+
+/* ==========================================
+   CLICKABLE SUMMARY
+========================================== */
+
+.withdrawal-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.withdrawal-summary:hover {
+  background-color: #f7f7f7;
+}
+
+
+/* ==========================================
+   AMOUNT
+========================================== */
+
+.withdrawal-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.withdrawal-amount strong {
+  font-size: 17px;
+  color: #222;
+}
+
+.withdrawal-amount small {
+  font-size: 11px;
+  color: #777;
+}
+
+
+/* ==========================================
+   ARROW
+========================================== */
+
+.dropdown-arrow {
+  font-size: 12px;
+  color: #555;
+}
+
+
+/* ==========================================
+   DETAILS
+========================================== */
+
+.withdrawal-details {
+  padding: 12px 16px 16px;
+  border-top: 1px solid #eee;
+  background-color: #fafafa;
+}
+
+
+/* ==========================================
+   INDIVIDUAL DETAIL
+========================================== */
+
+.transaction-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+
+.transaction-detail span {
+  font-size: 11px;
+  color: #777;
+}
+
+
+.transaction-detail strong {
+  font-size: 11px;
+  color: #333;
+  text-align: right;
+  word-break: break-word;
+}
+
+
+/* ==========================================
+   VERIFY BUTTON
+========================================== */
+
+.resolve-button {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+
+.resolve-button:hover {
+  background-color: #0056b3;
+}
+
+
+.resolve-button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
 }
 
 </style>
