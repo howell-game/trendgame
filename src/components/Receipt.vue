@@ -62,7 +62,7 @@
               </strong>
 
               <span>
-                (Investment Code)
+                (Code)
               </span>
 
               <span class="receipt-badge real-badge">
@@ -248,7 +248,7 @@
               </strong>
 
               <span>
-                (Investment Code)
+                (Code)
               </span>
 
               <span class="receipt-badge demo-badge">
