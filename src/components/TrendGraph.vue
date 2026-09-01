@@ -29,11 +29,11 @@
   >
 
     <p>
-      <strong>Mean ROI:</strong> {{ meanROI }}
+      <strong>Mean ROC:</strong> {{ meanROI }}
     </p>
 
     <p>
-      <strong>Max ROI:</strong> {{ maxEROI }}
+      <strong>Max ROC:</strong> {{ maxEROI }}
     </p>
 
   </div>
