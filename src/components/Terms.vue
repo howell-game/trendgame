@@ -63,7 +63,7 @@
     </section>
 
     <footer>
-      <router-link to="/" class="accept-btn">✔ Accept & Continue</router-link>
+      <router-link to="/investment" class="accept-btn">✔ Accept & Continue</router-link>
     </footer>
   </div>
 </template>

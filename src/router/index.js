@@ -36,8 +36,8 @@ const routes = [
   { path: "/chat", component: Chat },
 
   { path: "/terms", component: Terms},
-  { path: "/", component: InvestmentPage },
-  { path: "/signup", component: Signup },
+  { path: "/investment", component: InvestmentPage },
+  { path: "/", component: Signup },
   { path: "/login", component: Login },
   { path: "/summary", component: SummaryPage },
   { path: "/timeframe", component: Timeframe },

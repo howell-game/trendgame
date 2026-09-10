@@ -68,7 +68,7 @@
     </section>
 
     <footer>
-      <router-link to="/" class="back-btn">⬅ Back to Dashboard</router-link>
+      <router-link to="/investment" class="back-btn">⬅ Back to Dashboard</router-link>
     </footer>
   </div>
 </template>
