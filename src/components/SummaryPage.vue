@@ -13,12 +13,12 @@
     </div>
 
     <div class="investment-amount">
-      <label for="investmentAmount">Coins (min Coins200):</label>
+      <label for="investmentAmount">Coins (min Coins500):</label>
       <input
         type="number"
         id="investmentAmount"
         v-model="investmentAmount"
-        min="200"
+        min="500"
         required
         placeholder="Enter your coins amount"
       />
@@ -69,7 +69,7 @@ export default {
   data() {
     return {
       selectedInvestments: [],
-      investmentAmount: 200,
+      investmentAmount: 500,
       selectedTimeframe: "",
       errorMessage: ""  // Store error messages
     };
@@ -82,7 +82,7 @@ export default {
     ...mapGetters(['userId']),
     isFormValid() {
       return (
-        this.investmentAmount >= 200 &&
+        this.investmentAmount >= 500 &&
         this.selectedTimeframe !== "" &&
         this.investmentAmount !== ""
       );
