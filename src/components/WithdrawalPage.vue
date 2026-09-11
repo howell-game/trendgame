@@ -16,11 +16,11 @@
       <input
         type="number"
         v-model="amount"
-        min="500"
+        min="1000"
         placeholder="Enter Amount"
       />
-      <small v-if="amount && amount < 500" class="error">
-        Minimum withdrawal is ₦500
+      <small v-if="amount && amount < 1000" class="error">
+        Minimum withdrawal is ₦1000
       </small>
     </div>
 

@@ -30,7 +30,7 @@
 
         <router-link
           v-if="!isLoggedIn"
-          to="/signup"
+          to="/"
         >
           Sign Up
         </router-link>
