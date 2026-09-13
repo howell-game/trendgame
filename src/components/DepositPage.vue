@@ -1,13 +1,13 @@
 <template>
 <div>
   <div class="deposit-container">
-    <div class="h1">Deposit Funds</div>
+    <div class="h1">Buy Coins</div>
     <form @submit.prevent="handleDeposit">
       <div>
-        <label for="amount">Deposit Amount</label>
+        <label for="amount">Amount in Naira(1 C = 1 Naira)</label>
         <input type="number" v-model="amount" id="amount" required />
       </div>
-      <button type="submit">Deposit</button>
+      <button type="submit">Buy</button>
     </form>
     <div v-if="error" class="error">{{ error }}</div>
   </div>

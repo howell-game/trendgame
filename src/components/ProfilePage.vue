@@ -37,7 +37,7 @@
 
     <div class="button-container">
       <p>
-        <button class="button deposit" @click="navigateToDeposit">Deposit</button>
+        <button class="button deposit" @click="navigateToDeposit">Buy Coins</button>
         <button class="button Receipt" @click="navigateToReceipt">Receipt</button>
         <button class="button investment-details" @click="navigateToInvestmentDetails">History</button>
         <button class="button withdraw" @click="navigateToWithdrawal">Withdraw</button>
