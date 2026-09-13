@@ -61,165 +61,598 @@
 </template>
 
 <script>
+
 import { mapGetters } from 'vuex';
+
 import axios from 'axios';
 
+
 export default {
+
   name: "SummaryPage",
+
+
+  // ==========================================================
+  // DATA
+  // ==========================================================
+
   data() {
+
     return {
+
       selectedInvestments: [],
+
       investmentAmount: 500,
+
       selectedTimeframe: "",
-      errorMessage: ""  // Store error messages
+
+      errorMessage: "",
+
+      submitting: false
+
     };
+
   },
+
+
+  // ==========================================================
+  // CREATED
+  // ==========================================================
+
   created() {
-    const investments = this.$route.query.investments;
-    this.selectedInvestments = investments ? JSON.parse(investments) : [];
+
+    const investments =
+      this.$route.query.investments;
+
+
+    this.selectedInvestments =
+      investments
+        ? JSON.parse(investments)
+        : [];
+
   },
+
+
+  // ==========================================================
+  // COMPUTED
+  // ==========================================================
+
   computed: {
-    ...mapGetters(['userId']),
+
+    ...mapGetters([
+
+      'userId'
+
+    ]),
+
+
+    // ========================================================
+    // FORM VALIDATION
+    // ========================================================
+
     isFormValid() {
+
       return (
+
         this.investmentAmount >= 500 &&
+
         this.selectedTimeframe !== "" &&
+
         this.investmentAmount !== ""
+
       );
+
     },
+
+
+    // ========================================================
+    // TOTAL POTENTIAL RETURN
+    //
+    // TOTAL ROI ONLY
+    // ========================================================
+
     totalPotentialReturn() {
-  if (this.selectedInvestments.length === 0) {
-    return 0;
-  }
 
-  let totalROI = 0;
 
-  this.selectedInvestments.forEach((investment) => {
-    totalROI += this.calculateROI(investment.odds);
-  });
+      if (
 
-  return Number(totalROI.toFixed(2));
-},
+        this.selectedInvestments.length === 0
 
- 
+      ) {
+
+        return 0;
+
+      }
+
+
+      let totalROI = 0;
+
+
+      this.selectedInvestments.forEach(
+
+        investment => {
+
+          totalROI +=
+
+            this.calculateROI(
+              investment.odds
+            );
+
+        }
+
+      );
+
+
+      return Number(
+
+        totalROI.toFixed(2)
+
+      );
+
+    }
+
   },
+
+
+  // ==========================================================
+  // METHODS
+  // ==========================================================
+
   methods: {
+
+
+    // ========================================================
+    // CALCULATE ROI
+    // ========================================================
+
     calculateROI(odds) {
-  const netAmount = Number(
-    (this.investmentAmount * 0.95).toFixed(2)
-  );
 
-  const numberOfInvestments =
-    this.selectedInvestments.length;
 
-  if (numberOfInvestments === 0) {
-    return 0;
-  }
+      // ------------------------------------------------------
+      // REMOVE 5% PLATFORM FEE
+      // ------------------------------------------------------
 
-  return Number(
-    (
-      (netAmount / numberOfInvestments) +
-      (netAmount * (Number(odds) / 100))
-    ).toFixed(2)
-  );
-},
-    addToInvestment(amount) {
-      this.investmentAmount += amount;
+      const netAmount =
+
+        Number(
+
+          (
+
+            this.investmentAmount *
+
+            0.95
+
+          ).toFixed(2)
+
+        );
+
+
+      // ------------------------------------------------------
+      // NUMBER OF SELECTED INVESTMENTS
+      // ------------------------------------------------------
+
+      const numberOfInvestments =
+
+        this.selectedInvestments.length;
+
+
+      if (
+
+        numberOfInvestments === 0
+
+      ) {
+
+        return 0;
+
+      }
+
+
+      // ------------------------------------------------------
+      // ROI CALCULATION
+      // ------------------------------------------------------
+
+      return Number(
+
+        (
+
+          (
+
+            netAmount /
+
+            numberOfInvestments
+
+          )
+
+          +
+
+          (
+
+            netAmount *
+
+            (
+
+              Number(odds) /
+
+              100
+
+            )
+
+          )
+
+        ).toFixed(2)
+
+      );
+
     },
+
+
+    // ========================================================
+    // ADD AMOUNT
+    // ========================================================
+
+    addToInvestment(amount) {
+
+      this.investmentAmount += amount;
+
+    },
+
+
+    // ========================================================
+    // SUBMIT INVESTMENT
+    //
+    // FRONTEND ONLY:
+    //
+    // 1. VALIDATES DATA
+    // 2. CALCULATES ROI
+    // 3. FORMATS INVESTMENTS
+    // 4. SENDS ONE REQUEST
+    //
+    // BACKEND HANDLES:
+    //
+    // ✓ BALANCE CHECK
+    // ✓ BALANCE DEDUCTION
+    // ✓ CREATE INVESTMENTS
+    // ✓ CREATE INVESTMENT SELECTION
+    // ✓ PLATFORM FEE
+    // ✓ REFERRAL BONUS
+    // ✓ TRANSACTION COMMIT
+    //
+    // IF ANYTHING FAILS:
+    //
+    // ✓ BACKEND ROLLS EVERYTHING BACK
+    // ========================================================
+
     async submitInvestment() {
-      if (this.submitting) return; // Prevent duplicate clicks
-      this.submitting = true; // Disable button
-      this.errorMessage = ""; // Clear old errors
+
+
+      // ------------------------------------------------------
+      // PREVENT DUPLICATE CLICKS
+      // ------------------------------------------------------
+
+      if (
+
+        this.submitting
+
+      ) {
+
+        return;
+
+      }
+
+
+      this.submitting = true;
+
+
+      // ------------------------------------------------------
+      // CLEAR OLD ERROR
+      // ------------------------------------------------------
+
+      this.errorMessage = "";
+
 
       try {
-        const userId = this.userId;
+
+
+        // ====================================================
+        // GET USER ID
+        // ====================================================
+
+        const userId =
+
+          this.userId;
+
+
         if (!userId) {
-          throw new Error("User is not logged in.");
+
+          throw new Error(
+
+            "User is not logged in."
+
+          );
+
         }
 
-        if (!this.selectedInvestments.length || this.investmentAmount < 200 || !this.selectedTimeframe) {
-          throw new Error("Please complete all fields correctly.");
+
+        // ====================================================
+        // VALIDATE INVESTMENT
+        // ====================================================
+
+        if (
+
+          !this.selectedInvestments.length ||
+
+          this.investmentAmount < 200 ||
+
+          !this.selectedTimeframe
+
+        ) {
+
+          throw new Error(
+
+            "Please complete all fields correctly."
+
+          );
+
         }
 
-       await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/outcomes/update-platform-fee`, {
-  investmentAmount: this.investmentAmount,
-});
 
-const deductionResponse = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/balance/deduct`, {
-  userId,
-  amount: this.investmentAmount,
-});
+        // ====================================================
+        // CALCULATE NET AMOUNT
+        //
+        // 5% PLATFORM FEE REMOVED
+        // ====================================================
+
+        const netAmount =
+
+          Number(
+
+            (
+
+              this.investmentAmount *
+
+              0.95
+
+            ).toFixed(2)
+
+          );
 
 
-        if (!deductionResponse.data.newBalance) {
-          throw new Error("Coins deduction failed. Please check your available Coins.");
+        // ====================================================
+        // NUMBER OF INVESTMENTS
+        // ====================================================
+
+        const numberOfInvestments =
+
+          this.selectedInvestments.length;
+
+
+        // ====================================================
+        // FORMAT INVESTMENTS
+        // ====================================================
+
+        const formattedInvestments =
+
+          this.selectedInvestments.map(
+
+            investment => {
+
+
+              // ----------------------------------------------
+              // CALCULATE ROI
+              // ----------------------------------------------
+
+              const roi =
+
+                Number(
+
+                  (
+
+                    (
+
+                      netAmount /
+
+                      numberOfInvestments
+
+                    )
+
+                    +
+
+                    (
+
+                      netAmount *
+
+                      (
+
+                        Number(
+                          investment.odds
+                        )
+
+                        /
+
+                        100
+
+                      )
+
+                    )
+
+                  ).toFixed(2)
+
+                );
+
+
+              // ----------------------------------------------
+              // RETURN FORMATTED INVESTMENT
+              // ----------------------------------------------
+
+              return {
+
+
+                category:
+
+                  investment.name,
+
+
+                choice:
+
+                  investment.choice,
+
+
+                amount:
+
+                  netAmount,
+
+
+                roi,
+
+
+                odds:
+
+                  investment.odds
+
+              };
+
+            }
+
+          );
+
+
+        // ====================================================
+        // SUBMIT TO BACKEND
+        //
+        // THIS IS THE ONLY INVESTMENT API CALL
+        //
+        // BACKEND WILL:
+        //
+        // 1. START TRANSACTION
+        // 2. CHECK BALANCE
+        // 3. DEDUCT BALANCE
+        // 4. CREATE INVESTMENTS
+        // 5. CREATE INVESTMENT SELECTION
+        // 6. PROCESS PLATFORM FEE
+        // 7. PROCESS REFERRAL BONUS
+        // 8. COMMIT
+        //
+        // IF ANYTHING FAILS:
+        //
+        // ROLLBACK EVERYTHING
+        // ====================================================
+
+        const response =
+
+          await axios.post(
+
+            `${import.meta.env.VITE_APP_BASE_URL}/api/investments/submit-investmentselection`,
+
+            {
+
+              userId,
+
+              amount:
+
+                this.investmentAmount,
+
+
+              timeframe:
+
+                this.selectedTimeframe,
+
+
+              selectedInvestments:
+
+                formattedInvestments
+
+            }
+
+          );
+
+
+        // ====================================================
+        // UPDATE USER BALANCE IN VUEX
+        // ====================================================
+
+        if (
+
+          response.data.newBalance !== undefined
+
+        ) {
+
+          this.$store.commit(
+
+            "updateBalance",
+
+            response.data.newBalance
+
+          );
+
         }
 
-        this.$store.commit('updateBalance', deductionResponse.data.newBalance);
 
-        const netInvestment = Number(
-  (this.investmentAmount * 0.95).toFixed(2)
-);
+        // ====================================================
+        // LOG RESPONSE
+        // ====================================================
 
-const netAmount = Number(
-  (this.investmentAmount * 0.95).toFixed(2)
-);
+        console.log(
 
-const numberOfInvestments =
-  this.selectedInvestments.length;
+          "Investment response:",
 
-const formattedInvestments =
-  this.selectedInvestments.map((investment) => {
+          response.data
 
-    const roi = Number(
-      (
-        (netAmount / numberOfInvestments) +
-        (netAmount * (investment.odds / 100))
-      ).toFixed(2)
-    );
-
-    return {
-      userId,
-      category: investment.name,
-      choice: investment.choice,
-      amount: netAmount,
-      roi,
-      timeframe: this.selectedTimeframe,
-      odds: investment.odds,
-      status: "awaiting",
-      outcome: null,
-    };
-
-  });
-
-        const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/investments/submit-investment`, {
-  investments: formattedInvestments,
-});
-
-await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/investments/submit-investmentselection`, {
-  investmentCode: this.generateUniqueCode(),
-  userId,
-  selectedInvestments: formattedInvestments,
-  amount: this.investmentAmount,
-  timeframe: this.selectedTimeframe,
-});
+        );
 
 
-        console.log("Investment response:", response.data);
+        // ====================================================
+        // REDIRECT USER
+        // ====================================================
 
-        this.$router.push(`/investment-details/${userId}`);
+        this.$router.push(
+
+          `/investment-details/${userId}`
+
+        );
+
+
       } catch (error) {
-        console.error('Error submitting investment:', error);
-        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+
+
+        // ====================================================
+        // HANDLE ERROR
+        // ====================================================
+
+        console.error(
+
+          "Error submitting investment:",
+
+          error
+
+        );
+
+
+        this.errorMessage =
+
+          error.response?.data?.message ||
+
+          error.message ||
+
+          "Something went wrong.";
+
+
       } finally {
-        this.submitting = false; // Re-enable button after request completes
+
+
+        // ====================================================
+        // RE-ENABLE SUBMIT BUTTON
+        // ====================================================
+
+        this.submitting = false;
+
       }
-    },
-    generateUniqueCode() {
-      return 'INV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-    },
-  },
+
+    }
+
+  }
+
 };
+
 </script>
 
 <style scoped>
