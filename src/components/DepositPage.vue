@@ -4,7 +4,7 @@
     <div class="h1">Buy Coins</div>
     <form @submit.prevent="handleDeposit">
       <div>
-        <label for="amount">Amount in Naira(1 C = 1 Naira)</label>
+        <label for="amount">Amount in Naira(1 🪙 = 1 Naira)</label>
         <input type="number" v-model="amount" id="amount" required />
       </div>
       <button type="submit">Buy</button>
