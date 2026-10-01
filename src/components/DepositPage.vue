@@ -1,10 +1,10 @@
 <template>
 <div>
   <div class="deposit-container">
-    <div class="h1">Buy Coins</div>
+    <div class="h1">Buy Pawns</div>
     <form @submit.prevent="handleDeposit">
       <div>
-        <label for="amount">Amount in Naira(1 🪙 = 1 Naira)</label>
+        <label for="amount">Amount in Naira(<img :src="goldenPawn" class="pawn-icon" alt="Pawn" /> = 1 Naira)</label>
         <input type="number" v-model="amount" id="amount" required />
       </div>
       <button type="submit">Buy</button>
@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import goldenPawn from '@/assets/golden-pawn.png';
 import { mapGetters } from 'vuex';
 import axios from 'axios';
 
@@ -23,6 +24,7 @@ export default {
     return {
       amount: 0,
       error: null,
+      goldenPawn,
     };
   },
   computed: {
@@ -62,4 +64,12 @@ export default {
   border-radius: 8px;
   background-color: lightyellow;
   }
+
+  .pawn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin: 0 3px;
+}
 </style>

@@ -25,6 +25,8 @@ import ResetPassword from '@/components/ResetPassword.vue';
 import AdminPage from '@/components/AdminPage.vue';
 import AdminChat from '@/components/AdminChat.vue';
 import AdminLogin from "../components/AdminLogin.vue";
+import Services from "../components/Services.vue";
+import CreateAccount from "../components/CreateAccount.vue";
 // Define the routes
 const routes = [
   { path: "/forgot-password", component: ForgotPassword },  
@@ -47,6 +49,8 @@ const routes = [
   { path: '/payment-success', component: PaymentSuccess }, // Add this route
   { path: '/transaction/:userId', component: TransactionPage },
   { path: "/summary", name: "SummaryPage", component: SummaryPage },
+  { path: "/services", component: Services },
+  { path: "/create-account", component: CreateAccount },
 
   { path: '/profile/:userId', component: ProfilePage },
   {

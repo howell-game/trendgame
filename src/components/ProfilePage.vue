@@ -32,17 +32,62 @@
       </div>
       <h1>Welcome, {{ userName }}</h1>
       <p><strong class="highlight-text">User ID:</strong> <span class="bold-yellow">{{ userId }}</span></p>
-      <p><strong class="highlight-text">Coins 🪙:</strong> <span class="bold-yellow">{{ roundedBalance }}</span></p>
+      <p><strong class="highlight-text">Pawns <img :src="goldenPawn" class="pawn-icon" alt="Pawn" /> :</strong> <span class="bold-yellow">{{ roundedBalance }}</span></p>
     </div>
 
     <div class="button-container">
       <p>
-        <button class="button deposit" @click="navigateToDeposit">Buy Coins</button>
+        <button class="button deposit" @click="navigateToDeposit">Buy Pawns</button>
         <button class="button Receipt" @click="navigateToReceipt">Receipt</button>
         <button class="button investment-details" @click="navigateToInvestmentDetails">History</button>
         <button class="button withdraw" @click="navigateToWithdrawal">Withdraw</button>
       </p>
     </div>
+
+
+     <div class="account-section">
+
+    <div class="account-card">
+
+      <div class="balance-header">
+        <div>
+          <p class="account-title">ETrend Account</p>
+          <p class="account-subtitle">Available Balance</p>
+        </div>
+
+        <div class="account-symbol">
+          ₦
+        </div>
+      </div>
+
+      <div class="balance-amount">
+        ₦1,000.00
+      </div>
+
+      <div class="account-actions">
+
+        <button class="action-btn fund-btn" @click="navigateToCreateAccount">
+          <span class="action-icon">＋</span>
+          <span>Fund Account</span>
+        </button>
+
+        <button class="action-btn withdraw-btn">
+          <span class="action-icon">↗</span>
+          <span>Withdraw</span>
+        </button>
+
+      </div>
+
+      <div class="account-footer">
+        <span>Account Balance</span>
+        <span class="history-link">Transaction History ›</span>
+      </div>
+
+    </div>
+
+  </div>
+
+    <Services />
 
     <InvestmentPage :userId="userId" />
   </div>
@@ -51,20 +96,24 @@
 
 
 <script>
+import goldenPawn from '@/assets/golden-pawn.png';
 import { mapState } from "vuex";
 import InvestmentPage from "./InvestmentPage.vue";
+import Services from "./Services.vue";
 import axios from "axios";
 import { useToast } from "vue-toastification";
 
 export default {
   components: {
     InvestmentPage,
+    Services,
   },
   data() {
     return {
       referralLink: "",
       showModeDropdown: false,
       selectedMode: "",
+      goldenPawn,
     };
   },
   computed: {
@@ -130,6 +179,10 @@ export default {
       this.$router.push(`/deposit/${this.userId}`);
       this.fetchBalance();
     },
+
+    navigateToCreateAccount() {
+  this.$router.push("/create-account");
+},
 
     navigateToReceipt() {
       this.$router.push(`/receipt/${this.userId}`);
@@ -404,6 +457,146 @@ p {
 
 .refill-button:hover {
   background-color: darkgoldenrod;
+}
+
+.account-section {
+  width: 100%;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+.account-section {
+  width: 100%;
+  padding: 0;
+}
+
+.account-card {
+  width: 100%;
+  padding: 8px 12px;
+  box-sizing: border-box;
+
+  background-color: #003366;
+  color: white;
+
+  border-radius: 5px;
+}
+
+/* HEADER */
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.account-subtitle {
+  margin: 1px 0 0;
+  font-size: 9px;
+  color: #c7d4e2;
+}
+
+/* NAIRA */
+
+.account-symbol {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* BALANCE */
+
+.balance-amount {
+  margin-top: 3px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ACTIONS */
+
+.account-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.action-btn {
+  flex: 1;
+
+  height: 30px;
+  padding: 0 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  border: none;
+  border-radius: 4px;
+
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.fund-btn {
+  background-color: #0b2440;
+}
+
+.withdraw-btn {
+  background-color: #8b111b;
+}
+
+.action-icon {
+  font-size: 13px;
+}
+
+/* FOOTER */
+
+.account-footer {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 5px;
+
+  font-size: 9px;
+  color: #b9c9d8;
+}
+
+.history-link {
+  color: white;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+  .account-card {
+    padding: 7px 10px;
+  }
+
+  .balance-amount {
+    font-size: 20px;
+  }
+
+  .action-btn {
+    height: 28px;
+    font-size: 9px;
+  }
+
+}
+.pawn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin: 0 3px;
 }
 
 
