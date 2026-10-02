@@ -5,6 +5,7 @@ import Signup from "../components/Signup.vue";                    // Fix: use re
 import Terms from '@/components/Terms.vue';
 import Chat from '@/components/Chat.vue';
 import AboutPage from "../components/AboutPage.vue";   
+import FundAccount from "@/components/FundAccount.vue";
 import Login from "../components/Login.vue";                      // Fix: use relative path
 import SummaryPage from "../components/SummaryPage.vue";          // Fix: use relative path
 import ProfilePage from "../components/ProfilePage.vue";          // Fix: use relative path
@@ -51,7 +52,7 @@ const routes = [
   { path: "/summary", name: "SummaryPage", component: SummaryPage },
   { path: "/services", component: Services },
   { path: "/create-account", component: CreateAccount },
-
+  {path: "/fund-account", component: FundAccount},
   { path: '/profile/:userId', component: ProfilePage },
   {
   path: "/adminchat",

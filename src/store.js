@@ -23,6 +23,13 @@ const store = createStore({
     SET_TRENDS(state,trends){
       state.trendCache = trends;
   },
+  setEtrendAccount(state, account) {
+  state.etrendAccount = account;
+},
+
+setEtrendBalance(state, balance) {
+  state.etrendBalance = Number(balance || 0);
+},
     setUser(state, userData) {
       state.isLoggedIn = true;
       state.userName = userData.name;
@@ -129,6 +136,58 @@ const store = createStore({
       commit("logOut");
     },
 
+
+    async loadEtrendAccount({ commit, getters }) {
+
+  try {
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-account/balance/${getters.userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getters.token}`,
+        },
+      }
+    );
+
+
+    commit(
+      "setEtrendAccount",
+      response.data.account
+    );
+
+
+    commit(
+      "setEtrendBalance",
+      response.data.balance
+    );
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load ETrend account:",
+      error
+    );
+
+    commit(
+      "setEtrendAccount",
+      null
+    );
+
+    commit(
+      "setEtrendBalance",
+      0
+    );
+
+    return false;
+
+  }
+
+},
+
     async loadTrendCache({ commit }) {
 
   try {
@@ -218,6 +277,9 @@ const store = createStore({
     },
   },
   getters: {
+
+    etrendAccount: state => state.etrendAccount,
+    etrendBalance: state => state.etrendBalance,
     trendCache(state){
       return state.trendCache;
     },

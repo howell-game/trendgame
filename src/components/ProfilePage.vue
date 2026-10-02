@@ -3,96 +3,284 @@
     <div class="top-bar">
       <!-- Left-aligned change mode section -->
       <div class="left-bar">
-  <button class="get-referral" @click="toggleModeDropdown">Change Mode</button>
-  <span v-if="selectedMode" class="selected-mode">{{ selectedMode }}</span>
-  <ul v-if="showModeDropdown" class="mode-dropdown">
-    <li @click="selectMode('Real')">Real</li>
-    <li @click="selectMode('Demo')">Demo</li>
-  </ul>
 
-  <!-- Refill Balance Button (shown only in Demo mode) -->
-  <button
-    v-if="selectedMode === 'Demo'"
-    class="refill-button"
-    @click="refillDemoBalance"
-  >
-    Refill Coins
-  </button>
-</div>
+        <button
+          class="get-referral"
+          @click="toggleModeDropdown"
+        >
+          Change Mode
+        </button>
+
+        <span
+          v-if="selectedMode"
+          class="selected-mode"
+        >
+          {{ selectedMode }}
+        </span>
+
+        <ul
+          v-if="showModeDropdown"
+          class="mode-dropdown"
+        >
+          <li @click="selectMode('Real')">
+            Real
+          </li>
+
+          <li @click="selectMode('Demo')">
+            Demo
+          </li>
+        </ul>
+
+        <!-- Refill Balance Button (shown only in Demo mode) -->
+        <button
+          v-if="selectedMode === 'Demo'"
+          class="refill-button"
+          @click="refillDemoBalance"
+        >
+          Refill Coins
+        </button>
+
+      </div>
 
 
       <!-- Right-aligned get referral code -->
-      <button class="get-referral" @click="getReferralCode">Get Referral Code</button>
+      <button
+        class="get-referral"
+        @click="getReferralCode"
+      >
+        Get Referral Code
+      </button>
+
     </div>
+
 
     <div class="base-data">
-      <div v-if="referralLink" class="referral-container">
-        <p><strong>Referral Link:</strong> {{ referralLink }}</p>
-        <button class="copy-btn" @click="copyReferral">Copy</button>
+
+      <div
+        v-if="referralLink"
+        class="referral-container"
+      >
+        <p>
+          <strong>Referral Link:</strong>
+          {{ referralLink }}
+        </p>
+
+        <button
+          class="copy-btn"
+          @click="copyReferral"
+        >
+          Copy
+        </button>
       </div>
-      <h1>Welcome, {{ userName }}</h1>
-      <p><strong class="highlight-text">User ID:</strong> <span class="bold-yellow">{{ userId }}</span></p>
-      <p><strong class="highlight-text">Pawns <img :src="goldenPawn" class="pawn-icon" alt="Pawn" /> :</strong> <span class="bold-yellow">{{ roundedBalance }}</span></p>
+
+
+      <h1>
+        Welcome, {{ userName }}
+      </h1>
+
+
+      <p>
+        <strong class="highlight-text">
+          User ID:
+        </strong>
+
+        <span class="bold-yellow">
+          {{ userId }}
+        </span>
+      </p>
+
+
+      <p>
+        <strong class="highlight-text">
+
+          Pawns
+
+          <img
+            :src="goldenPawn"
+            class="pawn-icon"
+            alt="Pawn"
+          />
+
+          :
+
+        </strong>
+
+        <span class="bold-yellow">
+          {{ roundedBalance }}
+        </span>
+
+      </p>
+
     </div>
+
 
     <div class="button-container">
+
       <p>
-        <button class="button deposit" @click="navigateToDeposit">Buy Pawns</button>
-        <button class="button Receipt" @click="navigateToReceipt">Receipt</button>
-        <button class="button investment-details" @click="navigateToInvestmentDetails">History</button>
-        <button class="button withdraw" @click="navigateToWithdrawal">Withdraw</button>
+
+        <button
+          class="button deposit"
+          @click="navigateToDeposit"
+        >
+          Buy Pawns
+        </button>
+
+
+        <button
+          class="button Receipt"
+          @click="navigateToReceipt"
+        >
+          Receipt
+        </button>
+
+
+        <button
+          class="button investment-details"
+          @click="navigateToInvestmentDetails"
+        >
+          History
+        </button>
+
+
+        <button
+          class="button withdraw"
+          @click="navigateToWithdrawal"
+        >
+          Withdraw
+        </button>
+
       </p>
-    </div>
-
-
-     <div class="account-section">
-
-    <div class="account-card">
-
-      <div class="balance-header">
-        <div>
-          <p class="account-title">ETrend Account</p>
-          <p class="account-subtitle">Available Balance</p>
-        </div>
-
-        <div class="account-symbol">
-          ₦
-        </div>
-      </div>
-
-      <div class="balance-amount">
-        ₦1,000.00
-      </div>
-
-      <div class="account-actions">
-
-        <button class="action-btn fund-btn" @click="navigateToCreateAccount">
-          <span class="action-icon">＋</span>
-          <span>Fund Account</span>
-        </button>
-
-        <button class="action-btn withdraw-btn">
-          <span class="action-icon">↗</span>
-          <span>Withdraw</span>
-        </button>
-
-      </div>
-
-      <div class="account-footer">
-        <span>Account Balance</span>
-        <span class="history-link">Transaction History ›</span>
-      </div>
 
     </div>
 
-  </div>
+
+    <!-- =====================================================
+         ETREND ACCOUNT
+         ===================================================== -->
+
+    <div class="account-section">
+
+      <div class="account-card">
+
+        <div class="balance-header">
+
+          <div>
+
+            <p class="account-title">
+              ETrend Account
+            </p>
+
+            <p class="account-subtitle">
+              Available Balance
+            </p>
+
+          </div>
+
+
+          <div class="account-symbol">
+            ₦
+          </div>
+
+        </div>
+
+
+        <!-- ETrend balance + bank details -->
+
+        <div class="account-info-row">
+
+          <div class="balance-amount">
+            ₦{{ formattedEtrendBalance }}
+          </div>
+
+
+          <div
+            v-if="etrendAccount"
+            class="bank-details"
+          >
+
+            <div class="account-number">
+              {{ etrendAccount.accountNumber }}
+            </div>
+
+            <div class="bank-name">
+              {{ etrendAccount.bankName }}
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Shown if the ETrend account has not loaded -->
+
+        <div
+          v-if="!etrendAccount"
+          class="no-account"
+        >
+          ETrend account information unavailable
+        </div>
+
+
+        <!-- ETrend account button -->
+
+        <div class="account-actions">
+
+          <button
+            class="action-btn fund-btn"
+            @click="handleFundAccount"
+          >
+
+            <span class="action-icon">
+              ＋
+            </span>
+
+            <span>
+              {{ etrendAccount ? "Fund Account" : "Create Account" }}
+            </span>
+
+          </button>
+
+
+          <button
+            class="action-btn withdraw-btn"
+          >
+
+            <span class="action-icon">
+              ↗
+            </span>
+
+            <span>
+              Withdraw
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <div class="account-footer">
+
+          <span>
+            Account Balance
+          </span>
+
+          <span class="history-link">
+            Transaction History ›
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
 
     <Services />
 
     <InvestmentPage :userId="userId" />
+
   </div>
 </template>
-
 
 
 <script>
@@ -104,164 +292,410 @@ import axios from "axios";
 import { useToast } from "vue-toastification";
 
 export default {
+
   components: {
     InvestmentPage,
     Services,
   },
+
+
   data() {
     return {
+
       referralLink: "",
+
       showModeDropdown: false,
+
       selectedMode: "",
+
       goldenPawn,
+
     };
   },
+
+
   computed: {
-    ...mapState(["userName", "userId", "balance"]),
+
+    ...mapState([
+      "userName",
+      "userId",
+      "balance",
+      "etrendAccount",
+      "etrendBalance"
+    ]),
+
+
     roundedBalance() {
-    return Math.round(Number(this.balance || 0));
-  },
-  },
-  methods: {
-    toggleModeDropdown() {
-      this.showModeDropdown = !this.showModeDropdown;
+      return Math.round(
+        Number(this.balance || 0)
+      );
     },
+
+
+    formattedEtrendBalance() {
+      return Number(
+        this.etrendBalance || 0
+      ).toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    },
+
+  },
+
+
+  methods: {
+
+    toggleModeDropdown() {
+
+      this.showModeDropdown =
+        !this.showModeDropdown;
+
+    },
+
+
+    /*
+     * ETrend Fund Account button
+     *
+     * If account exists:
+     *     open FundAccount page
+     *
+     * If account does not exist:
+     *     open Create Account page
+     */
+
+    handleFundAccount() {
+
+      if (this.etrendAccount) {
+
+        this.$router.push(
+          "/fund-account"
+        );
+
+      } else {
+
+        this.navigateToCreateAccount();
+
+      }
+
+    },
+
 
     selectMode(mode) {
+
       this.selectedMode = mode;
-      localStorage.setItem("selectedMode", mode); // 👈 Save mode
+
+      localStorage.setItem(
+        "selectedMode",
+        mode
+      );
+
       this.showModeDropdown = false;
 
+
       if (mode === "Real") {
+
         this.fetchBalance();
+
       } else if (mode === "Demo") {
+
         this.fetchDemoBalance();
+
       }
+
     },
+
 
     async fetchBalance() {
+
       try {
+
         const response = await axios.get(
+
           `${import.meta.env.VITE_APP_BASE_URL}/api/users/${this.userId}/balance`,
+
           {
             headers: {
-              Authorization: `Bearer ${this.$store.getters.token}`,
+              Authorization:
+                `Bearer ${this.$store.getters.token}`,
             },
           }
+
         );
 
-        const updatedBalance = response.data.balance;
-        this.$store.commit("updateBalance", updatedBalance);
+
+        const updatedBalance =
+          response.data.balance;
+
+
+        this.$store.commit(
+          "updateBalance",
+          updatedBalance
+        );
+
       } catch (error) {
-        console.error("Failed to fetch balance:", error);
+
+        console.error(
+          "Failed to fetch balance:",
+          error
+        );
+
       }
+
     },
+
 
     async fetchDemoBalance() {
+
       try {
+
         const response = await axios.get(
+
           `${import.meta.env.VITE_APP_BASE_URL}/api/users/${this.userId}/demobalance`,
+
           {
             headers: {
-              Authorization: `Bearer ${this.$store.getters.token}`,
+              Authorization:
+                `Bearer ${this.$store.getters.token}`,
             },
           }
+
         );
 
-        const updatedDemoBalance = response.data.demoBalance;
-        this.$store.commit("updateBalance", updatedDemoBalance);
+
+        const updatedDemoBalance =
+          response.data.demoBalance;
+
+
+        this.$store.commit(
+          "updateBalance",
+          updatedDemoBalance
+        );
+
       } catch (error) {
-        console.error("Failed to fetch demo balance:", error);
+
+        console.error(
+          "Failed to fetch demo balance:",
+          error
+        );
+
       }
+
     },
+
 
     navigateToDeposit() {
-      this.$router.push(`/deposit/${this.userId}`);
+
+      this.$router.push(
+        `/deposit/${this.userId}`
+      );
+
       this.fetchBalance();
+
     },
+
 
     navigateToCreateAccount() {
-  this.$router.push("/create-account");
-},
+
+      this.$router.push(
+        "/create-account"
+      );
+
+    },
+
 
     navigateToReceipt() {
-      this.$router.push(`/receipt/${this.userId}`);
+
+      this.$router.push(
+        `/receipt/${this.userId}`
+      );
+
     },
+
 
     navigateToWithdrawal() {
-      this.$router.push(`/withdrawal/${this.userId}`);
+
+      this.$router.push(
+        `/withdrawal/${this.userId}`
+      );
+
       this.fetchBalance();
+
     },
+
 
     navigateToInvestmentDetails() {
-      this.$router.push(`/investment-details/${this.userId}`);
+
+      this.$router.push(
+        `/investment-details/${this.userId}`
+      );
+
     },
+
+
     async refillDemoBalance() {
-  try {
-    const response = await axios.patch(
-      `${import.meta.env.VITE_APP_BASE_URL}/api/users/${this.userId}/reset-demo`,
-      {}, // assuming no payload is needed
-      {
-        headers: {
-          Authorization: `Bearer ${this.$store.getters.token}`,
-        },
+
+      try {
+
+        const response = await axios.patch(
+
+          `${import.meta.env.VITE_APP_BASE_URL}/api/users/${this.userId}/reset-demo`,
+
+          {},
+
+          {
+            headers: {
+              Authorization:
+                `Bearer ${this.$store.getters.token}`,
+            },
+          }
+
+        );
+
+
+        const newBalance =
+          response.data.demoBalance;
+
+
+        this.$store.commit(
+          "updateBalance",
+          newBalance
+        );
+
+
+        const toast = useToast();
+
+        toast.success(
+          "Demo balance refilled!"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Refill failed:",
+          error
+        );
+
+
+        const toast = useToast();
+
+        toast.error(
+          "Failed to refill demo balance."
+        );
+
       }
-    );
 
-    const newBalance = response.data.demoBalance;
-    this.$store.commit("updateBalance", newBalance);
-
-    const toast = useToast();
-    toast.success("Demo balance refilled!");
-  } catch (error) {
-    console.error("Refill failed:", error);
-    const toast = useToast();
-    toast.error("Failed to refill demo balance.");
-  }
-},
+    },
 
 
     async getReferralCode() {
+
       try {
+
         const response = await axios.post(
+
           `${import.meta.env.VITE_APP_BASE_URL}/api/investments/generate-referral`,
-          { userId: this.userId },
+
+          {
+            userId: this.userId
+          },
+
           {
             headers: {
-              Authorization: `Bearer ${this.$store.getters.token}`,
+              Authorization:
+                `Bearer ${this.$store.getters.token}`,
             },
           }
+
         );
-        this.referralLink = response.data.referralLink;
+
+
+        this.referralLink =
+          response.data.referralLink;
+
       } catch (error) {
-        console.error("Failed to generate referral code:", error);
+
+        console.error(
+          "Failed to generate referral code:",
+          error
+        );
+
       }
+
     },
 
+
     copyReferral() {
+
       if (this.referralLink) {
+
         navigator.clipboard
           .writeText(this.referralLink)
+
           .then(() => {
+
             const toast = useToast();
-            toast.success("Referral code copied!");
+
+            toast.success(
+              "Referral code copied!"
+            );
+
           })
+
           .catch((err) => {
-            console.error("Failed to copy:", err);
+
+            console.error(
+              "Failed to copy:",
+              err
+            );
+
           });
+
       }
+
     },
+
   },
-   created() {
-  const savedMode = localStorage.getItem("selectedMode");
-  if (savedMode === "Demo") {
-    this.selectedMode = "Demo";
-    this.fetchDemoBalance();
-  } else {
-    this.selectedMode = "Real";
-    this.fetchBalance();
+
+
+  beforeMount() {
+
+    /*
+     * Load the user's ETrend account
+     * into Vuex before the page is displayed.
+     */
+
+    this.$store.dispatch(
+      "loadEtrendAccount"
+    );
+
+  },
+
+
+  created() {
+
+    const savedMode =
+      localStorage.getItem(
+        "selectedMode"
+      );
+
+
+    if (savedMode === "Demo") {
+
+      this.selectedMode = "Demo";
+
+      this.fetchDemoBalance();
+
+    } else {
+
+      this.selectedMode = "Real";
+
+      this.fetchBalance();
+
+    }
+
   }
-}
+
 };
 </script>
 
@@ -598,6 +1032,27 @@ p {
   vertical-align: middle;
   margin: 0 3px;
 }
+.account-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
 
+.bank-details {
+  text-align: right;
+}
+
+.account-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.bank-name {
+  margin-top: 2px;
+  font-size: 10px;
+  color: #c7d4e2;
+}
 
 </style>

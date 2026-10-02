@@ -60,12 +60,15 @@ export default {
 
         const { token, user } = response.data;
 
-        this.$store.dispatch('logIn', {
-          name: user.name,
-          userId: user.userId,
-          balance: user.balance,
-          token
-        });
+        await this.$store.dispatch('logIn', {
+  name: user.name,
+  userId: user.userId,
+  balance: user.balance,
+  token
+});
+
+await this.$store.dispatch('loadEtrendAccount');
+
 
         // Clear password before leaving login page
         this.password = '';
