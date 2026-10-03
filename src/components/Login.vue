@@ -69,6 +69,8 @@ export default {
 
 await this.$store.dispatch('loadEtrendAccount');
 
+await this.$store.dispatch('loadEtrendTransactions');
+
 
         // Clear password before leaving login page
         this.password = '';

@@ -4,8 +4,9 @@ import sanitizeHtml from "sanitize-html"; // Import sanitize-html for security
 import axios from "axios"; // Import axios for API requests
 
 const store = createStore({
-  state: {
+ state: {
     trendCache:{},
+
     isLoggedIn: localStorage.getItem("token") ? true : false,
     userName: localStorage.getItem("userName") || null,
     memberName: localStorage.getItem("memberName") || null,
@@ -16,15 +17,29 @@ const store = createStore({
     contributedShare: parseFloat(localStorage.getItem("contributedShare")) || 0,
     sharePercentage: parseFloat(localStorage.getItem("sharePercentage")) || 0,
     token: localStorage.getItem("token") || null,
+
+    // ETrend account
+    etrendAccount: null,
+    etrendBalance: 0,
+    etrendTransactions: [],
+
     chatMessages: [],
     socket: null,
-  },
+},
+
+
   mutations: {
     SET_TRENDS(state,trends){
       state.trendCache = trends;
   },
   setEtrendAccount(state, account) {
   state.etrendAccount = account;
+},
+
+setEtrendTransactions(state, transactions) {
+  state.etrendTransactions = Array.isArray(transactions)
+    ? transactions
+    : [];
 },
 
 setEtrendBalance(state, balance) {
@@ -188,6 +203,56 @@ setEtrendBalance(state, balance) {
 
 },
 
+async loadEtrendTransactions({ commit, getters }) {
+
+  try {
+
+    if (!getters.userId) {
+      commit("setEtrendTransactions", []);
+      return false;
+    }
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-account/transactions/${getters.userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getters.token}`,
+        },
+      }
+    );
+
+    const transactions =
+      response.data?.transactions || [];
+
+    commit(
+      "setEtrendTransactions",
+      transactions
+    );
+
+    console.log(
+      "ETrend transactions loaded:",
+      transactions
+    );
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load ETrend transactions:",
+      error.response?.data || error.message
+    );
+
+    commit(
+      "setEtrendTransactions",
+      []
+    );
+
+    return false;
+  }
+
+},
+
     async loadTrendCache({ commit }) {
 
   try {
@@ -280,6 +345,7 @@ setEtrendBalance(state, balance) {
 
     etrendAccount: state => state.etrendAccount,
     etrendBalance: state => state.etrendBalance,
+    etrendTransactions: state => state.etrendTransactions,
     trendCache(state){
       return state.trendCache;
     },

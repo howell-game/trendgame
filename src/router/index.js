@@ -1,8 +1,10 @@
 import store from '../store'; 
 import { createRouter, createWebHashHistory } from "vue-router";
+import EtrendTransaction from "@/components/EtrendTransaction.vue";
 import InvestmentPage from "../components/InvestmentPage.vue";  // Fix: use relative path
 import Signup from "../components/Signup.vue";                    // Fix: use relative path
 import Terms from '@/components/Terms.vue';
+import EtrendSendTo from "@/components/EtrendSendTo.vue";
 import Chat from '@/components/Chat.vue';
 import AboutPage from "../components/AboutPage.vue";   
 import FundAccount from "@/components/FundAccount.vue";
@@ -53,6 +55,8 @@ const routes = [
   { path: "/services", component: Services },
   { path: "/create-account", component: CreateAccount },
   {path: "/fund-account", component: FundAccount},
+  {path: "/etrend-send-to",component: EtrendSendTo},
+  {path: "/etrend-transactions", component: EtrendTransaction},
   { path: '/profile/:userId', component: ProfilePage },
   {
   path: "/adminchat",

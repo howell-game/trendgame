@@ -78,18 +78,6 @@
         Welcome, {{ userName }}
       </h1>
 
-
-      <p>
-        <strong class="highlight-text">
-          User ID:
-        </strong>
-
-        <span class="bold-yellow">
-          {{ userId }}
-        </span>
-      </p>
-
-
       <p>
         <strong class="highlight-text">
 
@@ -146,7 +134,7 @@
           class="button withdraw"
           @click="navigateToWithdrawal"
         >
-          Withdraw
+          WdrawPawns
         </button>
 
       </p>
@@ -242,15 +230,16 @@
 
 
           <button
-            class="action-btn withdraw-btn"
-          >
+  class="action-btn withdraw-btn"
+  @click="navigateToEtrendSend"
+>
 
             <span class="action-icon">
               ↗
             </span>
 
             <span>
-              Withdraw
+              SendTo
             </span>
 
           </button>
@@ -270,6 +259,25 @@
 
         </div>
 
+            </div>
+
+      <!-- Latest ETrend Transaction -->
+      <div
+        v-if="latestEtrendTransaction"
+        class="latest-transaction"
+        @click="goToEtrendTransactions"
+      >
+        <span class="latest-label">
+          Latest Transaction:
+        </span>
+
+        <span class="latest-text">
+          {{ latestTransactionText }}
+        </span>
+
+        <span class="latest-arrow">
+          ›
+        </span>
       </div>
 
     </div>
@@ -321,7 +329,8 @@ export default {
       "userId",
       "balance",
       "etrendAccount",
-      "etrendBalance"
+      "etrendBalance",
+      "etrendTransactions"
     ]),
 
 
@@ -339,6 +348,40 @@ export default {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
+    },
+
+        latestEtrendTransaction() {
+      return this.etrendTransactions &&
+        this.etrendTransactions.length
+        ? this.etrendTransactions[0]
+        : null;
+    },
+
+
+    latestTransactionText() {
+
+      const transaction =
+        this.latestEtrendTransaction;
+
+      if (!transaction) {
+        return "";
+      }
+
+      const amount =
+        Number(transaction.amount || 0)
+          .toLocaleString("en-NG", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+
+      if (transaction.type === "C") {
+
+        return `Received ₦${amount}`;
+
+      }
+
+      return `Sent ₦${amount}`;
+
     },
 
   },
@@ -379,6 +422,22 @@ export default {
       }
 
     },
+
+        goToEtrendTransactions() {
+
+      this.$router.push(
+        "/etrend-transactions"
+      );
+
+    },
+
+    navigateToEtrendSend() {
+
+  this.$router.push(
+    "/etrend-send-to"
+  );
+
+},
 
 
     selectMode(mode) {
@@ -1054,5 +1113,34 @@ p {
   font-size: 10px;
   color: #c7d4e2;
 }
+.latest-transaction {
+  margin-top: 6px;
+  padding: 9px 10px;
+  background: lightyellow;
+  color: #003366;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
 
+.latest-label {
+  font-weight: bold;
+}
+
+.latest-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.latest-arrow {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+}
 </style>
