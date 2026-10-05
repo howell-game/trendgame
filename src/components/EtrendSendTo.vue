@@ -288,24 +288,6 @@ export default {
 
 
     // ==========================================================
-    // ETREND SERVICE FEE
-    //
-    // 0.9% of transfer amount
-    // ==========================================================
-
-    etrendServiceFee() {
-
-      return Number(
-        (
-          this.transferAmount *
-          0.009
-        ).toFixed(2)
-      );
-
-    },
-
-
-    // ==========================================================
     // FLUTTERWAVE TRANSFER FEE
     //
     // Nigeria bank transfer pricing:
@@ -336,6 +318,29 @@ export default {
       }
 
       return 50;
+
+    },
+
+
+    // ==========================================================
+    // ETREND SERVICE FEE
+    //
+    // ETrend charges 50% of the applicable
+    // Flutterwave transfer fee.
+    //
+    // ₦10 Flutterwave fee = ₦5 ETrend fee
+    // ₦25 Flutterwave fee = ₦12.50 ETrend fee
+    // ₦50 Flutterwave fee = ₦25 ETrend fee
+    // ==========================================================
+
+    etrendServiceFee() {
+
+      return Number(
+        (
+          this.flutterwaveTransferFee *
+          0.5
+        ).toFixed(2)
+      );
 
     },
 

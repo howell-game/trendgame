@@ -77,17 +77,43 @@
       </div>
 
     </div>
+        <!-- Airtime Modal -->
+    <Airtime
+      v-if="showAirtime"
+      @close="closeAirtime"
+    />
 
   </div>
 </template>
 
 <script>
+import Airtime from "./Airtime.vue";
+
 export default {
   name: "Services",
 
+  components: {
+    Airtime
+  },
+
+  data() {
+    return {
+      showAirtime: false
+    };
+  },
+
   methods: {
     openService(service) {
+      if (service === "airtime") {
+        this.showAirtime = true;
+        return;
+      }
+
       console.log("Selected service:", service);
+    },
+
+    closeAirtime() {
+      this.showAirtime = false;
     }
   }
 };
