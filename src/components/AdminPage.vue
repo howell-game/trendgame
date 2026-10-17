@@ -181,6 +181,36 @@
         </button>
 
 
+        
+<!-- SCHEME OF WORK -->
+
+<button
+  :class="{ active: activeSection === 'add-scheme' }"
+  @click="$router.push('/add-scheme')"
+>
+  <span>📚</span>
+
+  <div>
+    <strong>Add Scheme</strong>
+    <small>Education Services</small>
+  </div>
+</button>
+
+
+<button
+  :class="{ active: activeSection === 'add-lesson-note' }"
+  @click="$router.push('/add-lesson-notes')"
+>
+  <span>📖</span>
+
+  <div>
+    <strong>Add Lesson Notes</strong>
+    <small>Education Services</small>
+  </div>
+</button>
+
+
+
 
         <!-- MESSAGES -->
 

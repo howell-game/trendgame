@@ -1,104 +1,153 @@
 <template>
   <div class="services-page">
 
-    <!-- Header -->
-    <div class="services-header">
-      <div>
-        <h1>Services</h1>
-        <p>Quick and convenient everyday services</p>
-      </div>
-
-      <div class="service-icon">
-        ⚡
-      </div>
-    </div>
-
-    <!-- Services Grid -->
-    <div class="services-grid">
-
-      <!-- Airtime -->
-      <div class="service-card black-card" @click="openService('airtime')">
-        <div class="card-icon">📱</div>
-        <div class="card-content">
-          <h2>Airtime</h2>
-          <p>Buy airtime for all networks</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <!-- Data -->
-      <div class="service-card blue-card" @click="openService('data')">
-        <div class="card-icon">🌐</div>
-        <div class="card-content">
-          <h2>Data</h2>
-          <p>Buy affordable data bundles</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <!-- Electricity -->
-      <div class="service-card red-card" @click="openService('electricity')">
-        <div class="card-icon">⚡</div>
-        <div class="card-content">
-          <h2>Electricity</h2>
-          <p>Pay your electricity bills</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <!-- Cable TV -->
-      <div class="service-card black-card" @click="openService('cable')">
-        <div class="card-icon">📺</div>
-        <div class="card-content">
-          <h2>Cable TV</h2>
-          <p>Renew your TV subscription</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <!-- Education -->
-      <div class="service-card blue-card" @click="openService('education')">
-        <div class="card-icon">🎓</div>
-        <div class="card-content">
-          <h2>Education</h2>
-          <p>Access educational materials</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <!-- Other Services -->
-      <div class="service-card red-card" @click="openService('others')">
-        <div class="card-icon">🛒</div>
-        <div class="card-content">
-          <h2>Other Services</h2>
-          <p>Explore more available services</p>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-    </div>
-        <!-- Airtime Modal -->
-    <Airtime
-      v-if="showAirtime"
-      @close="closeAirtime"
+    <!-- Show Education when selected -->
+    <Education
+      v-if="showEducation"
+      @close="showEducation = false"
     />
+
+    <!-- Existing Services Page -->
+    <template v-else>
+      <!-- Header -->
+      <div class="services-header">
+        <div>
+          <h1>Services</h1>
+          <p>Quick and convenient everyday services</p>
+        </div>
+
+        <div class="service-icon">
+          ⚡
+        </div>
+      </div>
+
+      <!-- Services Grid -->
+      <div class="services-grid">
+
+        <!-- Airtime -->
+        <div class="service-card black-card" @click="openService('airtime')">
+          <div class="card-icon">📱</div>
+          <div class="card-content">
+            <h2>Airtime</h2>
+            <p>Buy airtime for all networks</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+        <!-- Data -->
+        <div class="service-card blue-card" @click="openService('data')">
+          <div class="card-icon">🌐</div>
+          <div class="card-content">
+            <h2>Data</h2>
+            <p>Buy affordable data bundles</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+        <!-- Electricity -->
+        <div class="service-card red-card" @click="openService('electricity')">
+          <div class="card-icon">⚡</div>
+          <div class="card-content">
+            <h2>Electricity</h2>
+            <p>Pay your electricity bills</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+        <!-- Cable TV -->
+        <div class="service-card black-card" @click="openService('tv')">
+          <div class="card-icon">📺</div>
+          <div class="card-content">
+            <h2>Cable TV</h2>
+            <p>Renew your TV subscription</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+        <!-- Education -->
+        <div class="service-card blue-card" @click="$router.push('/education')">
+          <div class="card-icon">🎓</div>
+          <div class="card-content">
+            <h2>Education</h2>
+            <p>Access educational materials</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+        <!-- Exam PINS -->
+        <div class="service-card red-card" @click="openService('pins')">
+          <div class="card-icon">📝</div>
+          <div class="card-content">
+            <h2>Exam PINS</h2>
+            <p>Buy WAEC, JAMB, PINS</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+
+      </div>
+
+      <!-- Airtime Modal -->
+      <Airtime
+        v-if="showAirtime"
+        @close="closeAirtime"
+      />
+
+      <!-- Data Modal -->
+      <Data
+        v-if="showData"
+        @close="closeData"
+      />
+
+      <!-- TV Modal -->
+      <TV
+        v-if="showTV"
+        @close="closeTV"
+      />
+
+      <!-- Electricity Modal -->
+      <Electricity
+        v-if="showElectricity"
+        @close="closeElectricity"
+      />
+
+      <!-- Exam PINs Modal -->
+      <ExamPins
+        v-if="showExamPins"
+        @close="closeExamPins"
+      />
+    </template>
 
   </div>
 </template>
 
 <script>
 import Airtime from "./Airtime.vue";
+import TV from "./TV.vue";
+import Data from "./Data.vue";
+import ExamPins from "./ExamPins.vue";
+import Electricity from "./Electricity.vue";
+import Education from "./Education.vue";
 
 export default {
   name: "Services",
 
   components: {
-    Airtime
+    Airtime,
+    Data,
+    TV,
+    Electricity,
+    ExamPins,
+    Education
   },
 
   data() {
     return {
-      showAirtime: false
+      showAirtime: false,
+      showData: false,
+      showTV: false,
+      showElectricity: false,
+      showExamPins: false,
+      showEducation: false
     };
   },
 
@@ -109,11 +158,52 @@ export default {
         return;
       }
 
+      if (service === "data") {
+        this.showData = true;
+        return;
+      }
+
+      if (service === "electricity") {
+        this.showElectricity = true;
+        return;
+      }
+
+      if (service === "tv") {
+        this.showTV = true;
+        return;
+      }
+
+      if (service === "pins") {
+        this.showExamPins = true;
+        return;
+      }
+
+      if (service === "education") {
+        this.showEducation = true;
+        return;
+      }
+
       console.log("Selected service:", service);
     },
 
     closeAirtime() {
       this.showAirtime = false;
+    },
+
+    closeData() {
+      this.showData = false;
+    },
+
+    closeTV() {
+      this.showTV = false;
+    },
+
+    closeElectricity() {
+      this.showElectricity = false;
+    },
+
+    closeExamPins() {
+      this.showExamPins = false;
     }
   }
 };

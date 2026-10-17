@@ -2,9 +2,14 @@ import store from '../store';
 import { createRouter, createWebHashHistory } from "vue-router";
 import EtrendTransaction from "@/components/EtrendTransaction.vue";
 import InvestmentPage from "../components/InvestmentPage.vue";  // Fix: use relative path
-import Signup from "../components/Signup.vue";                    // Fix: use relative path
+import Signup from "../components/Signup.vue"; 
+import QuestionBank from "../components/QuestionBank.vue";
+import Education from "../components/Education.vue"; 
+import AddScheme from "../components/AddScheme.vue";     
+import AddLessonNotes from "../components/AddLessonNotes.vue";          // Fix: use relative path
 import Terms from '@/components/Terms.vue';
 import EtrendSendTo from "@/components/EtrendSendTo.vue";
+import LessonNotes from "../components/LessonNotes.vue";
 import Chat from '@/components/Chat.vue';
 import AboutPage from "../components/AboutPage.vue";   
 import FundAccount from "@/components/FundAccount.vue";
@@ -30,18 +35,25 @@ import AdminChat from '@/components/AdminChat.vue';
 import AdminLogin from "../components/AdminLogin.vue";
 import Services from "../components/Services.vue";
 import CreateAccount from "../components/CreateAccount.vue";
+import SchemeOfWork from "../components/SchemeOfWork.vue";
+import Teacher from "../components/Teacher.vue";
 // Define the routes
 const routes = [
   { path: "/forgot-password", component: ForgotPassword },  
   { path: "/reset-password/:token", component: ResetPassword },
   { path: "/verify", component: VerifyLog },
+  {path: "/scheme-of-work",name: "SchemeOfWork",component: SchemeOfWork},
   {path: "/adminlogin", component: AdminLogin},
+  {path: "/add-scheme", name: "AddScheme",component: AddScheme},
   { path: "/about", component: AboutPage },
   { path: "/advice", component: InvestmentAdvice },
+  {path: "/teacher",name: "Teacher",component: Teacher},
   { path: "/chat", component: Chat },
-
+  {path: "/education",name: "Education",component: Education},
   { path: "/terms", component: Terms},
   { path: "/investment", component: InvestmentPage },
+  {path: "/lesson-notes",component: LessonNotes},
+  {path: "/add-lesson-notes", name: "AddLessonNotes", component: AddLessonNotes},
   { path: "/", component: Signup },
   { path: "/login", component: Login },
   { path: "/summary", component: SummaryPage },
@@ -83,6 +95,7 @@ const routes = [
   { path: '/verify/:userId', name: 'Verify', component: () => import('../views/Verify.vue') },
   { path: '/deposit/:userId', component: DepositPage },
   { path: '/withdrawal/:userId', component: WithdrawalPage },
+  {path: "/question-bank", name: "QuestionBank", component: QuestionBank},
   { path: '/receipt/:userId', component: Receipt },
   { path: '/investment-details/:userId', component: InvestmentDetails },
   {path: '/profile', redirect: '/login'},
