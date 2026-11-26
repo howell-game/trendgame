@@ -12,8 +12,12 @@
     >
 
       <div class="logo-container">
-        <h1 class="quick">TrendGame9ja</h1>
-      </div>
+  <img
+    :src="etrendLogo"
+    alt="ETrend"
+    class="quick"
+  />
+</div>
 
       <nav v-if="!isHiddenPage" class="main-nav">
 
@@ -67,15 +71,7 @@
     </div>
 
 
-    <!-- =========================
-         BANNER CAROUSEL
-    ========================== -->
-    <div
-      v-if="!isAdminPage"
-      class="banner-wrapper"
-    >
-      <BannerCarousel />
-    </div>
+    
 
 
     <!-- =========================
@@ -122,6 +118,8 @@ import { mapState, mapActions } from "vuex";
 
 import Timeframe from "./components/Timeframe.vue";
 import BannerCarousel from "./components/BannerCarousel.vue";
+import ServiceBanner from "./components/ServiceBanner.vue";
+import etrendLogo from "@/assets/etrend-logo.png";
 
 
 export default {
@@ -131,7 +129,7 @@ export default {
 
   components: {
     Timeframe,
-    BannerCarousel,
+    ServiceBanner,
   },
 
 
@@ -145,6 +143,8 @@ export default {
       isHeaderHidden: false,
 
       lastScrollPosition: 0,
+
+      etrendLogo,
 
 
       // =========================
@@ -734,17 +734,12 @@ body {
 
 
 .quick {
-
+  display: block;
+  width: 145px;
+  height: 40px;
   margin: 0;
-
-  color: white;
-
-  font-size: 26px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.5px;
-
+  object-fit: contain;
+  object-position: left center;
 }
 
 
@@ -1134,4 +1129,4 @@ footer p {
 }
 
 </style>
-```
+

@@ -210,6 +210,19 @@
 </button>
 
 
+<button
+  :class="{ active: activeSection === 'add-lesson-note' }"
+  @click="$router.push('/add-questions')"
+>
+  <span>🧠</span>
+
+  <div>
+    <strong>Add Questions</strong>
+    <small>Education Services</small>
+  </div>
+</button>
+
+
 
 
         <!-- MESSAGES -->

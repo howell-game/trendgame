@@ -1,6 +1,15 @@
 <template>
   <div class="investment-page">
   <div class="prompt"> make at least two(2) selections!</div>
+  <!-- =========================
+         BANNER CAROUSEL
+    ========================== -->
+    <div
+      v-if="!isAdminPage"
+      class="banner-wrapper"
+    >
+      <BannerCarousel/>
+    </div>
     
     <div class="category-cards">
       <v-card v-for="category in categories" :key="category.id" class="category-card">
@@ -47,11 +56,13 @@
 
 <script>
 import TrendGraph from "@/components/TrendGraph.vue";
+import BannerCarousel from "@/components/BannerCarousel.vue";
 import { mapActions } from "vuex";
 
 export default {
   components: {
     TrendGraph,
+    BannerCarousel
   },
   data() {
     return {

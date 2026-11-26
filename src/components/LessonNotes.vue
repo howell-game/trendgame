@@ -1,313 +1,201 @@
 
 <template>
-  <div class="lesson-notes-page">
-    <header class="page-header">
+  <div class="lesson-library">
+    <!-- HEADER -->
+    <header class="library-header">
       <div>
-        <h1>ETrend Education Services</h1>
-        <p>Lesson Notes</p>
+        <span class="eyebrow">ETREND EDUCATION</span>
+        <h1>Lesson Notes Library</h1>
+        <p>Access and study your complete lesson notes in PDF format.</p>
       </div>
-      <button class="back-btn" @click="$router.back()">← Back</button>
+
+      <div class="header-icon">📚</div>
     </header>
 
     <!-- FILTERS -->
     <section class="filter-card">
-      <div class="filter-field">
-        <label for="session">Academic Session</label>
-        <select id="session" v-model="filters.academicSession">
-          <option value="">All Sessions</option>
-          <option>2026/2027</option>
-          <option>2025/2026</option>
-        </select>
-      </div>
+      <h2>Find a Lesson Note</h2>
 
-      <div class="filter-field">
-        <label for="term">Term</label>
-        <select id="term" v-model="filters.term">
-          <option value="">All Terms</option>
-          <option>First Term</option>
-          <option>Second Term</option>
-          <option>Third Term</option>
-        </select>
-      </div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Select Class</label>
+          <select v-model="filters.className" @change="loadLessonNotes">
+            <option value="">All Classes</option>
+            <option v-for="item in classes" :key="item" :value="item">
+              {{ item }}
+            </option>
+          </select>
+        </div>
 
-      <div class="filter-field">
-        <label for="className">Class</label>
-        <select id="className" v-model="filters.className">
-          <option value="">All Classes</option>
-          <option>JSS 1</option>
-          <option>JSS 2</option>
-          <option>JSS 3</option>
-          <option>SS 1</option>
-          <option>SS 2</option>
-          <option>SS 3</option>
-        </select>
-      </div>
+        <div class="filter-group">
+          <label>Select Subject</label>
+          <select v-model="filters.subject" @change="loadLessonNotes">
+            <option value="">All Subjects</option>
+            <option v-for="item in subjects" :key="item" :value="item">
+              {{ item }}
+            </option>
+          </select>
+        </div>
 
-      <div class="filter-field">
-        <label for="subject">Subject</label>
-        <select id="subject" v-model="filters.subject">
-          <option value="">All Subjects</option>
-          <option v-for="subject in subjects" :key="subject" :value="subject">
-            {{ subject }}
-          </option>
-        </select>
-      </div>
-
-      <button
-        class="primary-btn"
-        :disabled="loading"
-        @click="loadLessonNotes"
-      >
-        {{ loading ? "Loading..." : "Load Lesson Notes" }}
-      </button>
-    </section>
-
-    <!-- STATUS MESSAGES -->
-    <div v-if="loading" class="message">
-      Loading lesson notes from the server...
-    </div>
-
-    <div v-else-if="errorMessage" class="message error-message">
-      {{ errorMessage }}
-      <button class="retry-btn" @click="loadLessonNotes">
-        Try Again
-      </button>
-    </div>
-
-    <div v-else-if="message" class="message">
-      {{ message }}
-    </div>
-
-    <!-- LESSON LAYOUT -->
-    <section class="lesson-layout">
-      <!-- WEEK SIDEBAR -->
-      <aside class="weeks-panel">
-        <h2>Lesson Notes</h2>
-
-        <p v-if="!loading && weeks.length === 0" class="empty-message">
-          No lesson notes found for these filters.
-        </p>
+        <div class="filter-group">
+          <label>Select Term</label>
+          <select v-model="filters.term" @change="loadLessonNotes">
+            <option value="">All Terms</option>
+            <option value="First Term">First Term</option>
+            <option value="Second Term">Second Term</option>
+            <option value="Third Term">Third Term</option>
+          </select>
+        </div>
 
         <button
-          v-for="week in weeks"
-          :key="week.id"
-          class="week-item"
-          :class="{ selected: selectedWeek === week.weekNumber }"
+          class="search-button"
+          @click="loadLessonNotes"
           :disabled="loading"
-          @click="selectWeek(week)"
         >
-          <strong>Week {{ week.weekNumber }}</strong>
-          <span>{{ week.topic }}</span>
+          {{ loading ? "Searching..." : "Find Notes" }}
         </button>
-      </aside>
+      </div>
+    </section>
 
-      <!-- MAIN LESSON CONTENT -->
-      <main class="lesson-content">
-        <div v-if="detailLoading" class="content-card">
-          Loading the selected lesson...
-        </div>
-
-        <div v-else-if="detailError" class="content-card error-message">
-          {{ detailError }}
-          <button class="retry-btn" @click="selectWeek(selectedWeek)">
-            Try Again
-          </button>
-        </div>
-
-        <template v-else-if="currentLesson">
-          <div class="lesson-title">
-            <span>WEEK {{ currentLesson.weekNumber }}</span>
-            <h2>{{ currentLesson.topic }}</h2>
-            <p>
-              {{ currentLesson.className }} ·
-              {{ currentLesson.subject }} ·
-              {{ currentLesson.term }}
-            </p>
-          </div>
-
-          <article class="content-card">
-            <h3>1. Learning Objectives</h3>
-            <p>At the end of the lesson, students should be able to:</p>
-            <ul v-if="asList(currentLesson.objectives).length">
-              <li
-                v-for="(item, index) in asList(currentLesson.objectives)"
-                :key="index"
-              >
-                {{ item }}
-              </li>
-            </ul>
-            <p v-else class="empty-message">
-              No learning objectives have been provided.
-            </p>
-          </article>
-
-          <article class="content-card">
-            <h3>2. Instructional Materials</h3>
-            <p>{{ currentLesson.materials || "Not provided." }}</p>
-          </article>
-
-          <article class="content-card">
-            <h3>3. Previous Knowledge</h3>
-            <p>{{ currentLesson.previousKnowledge || "Not provided." }}</p>
-          </article>
-
-          <article class="content-card">
-            <h3>4. Lesson Content / Key Points</h3>
-            <ul v-if="asList(currentLesson.content).length">
-              <li
-                v-for="(item, index) in asList(currentLesson.content)"
-                :key="index"
-              >
-                {{ item }}
-              </li>
-            </ul>
-            <p v-else class="empty-message">
-              No lesson content has been provided.
-            </p>
-          </article>
-
-          <article class="content-card">
-            <h3>5. Teaching and Learning Activities</h3>
-            <ol v-if="asList(currentLesson.activities).length">
-              <li
-                v-for="(item, index) in asList(currentLesson.activities)"
-                :key="index"
-              >
-                {{ item }}
-              </li>
-            </ol>
-            <p v-else class="empty-message">
-              No teaching and learning activities have been provided.
-            </p>
-          </article>
-
-          <article class="content-card">
-            <h3>6. Evaluation</h3>
-            <ol v-if="asList(currentLesson.evaluation).length">
-              <li
-                v-for="(item, index) in asList(currentLesson.evaluation)"
-                :key="index"
-              >
-                {{ item }}
-              </li>
-            </ol>
-            <p v-else class="empty-message">
-              No evaluation questions have been provided.
-            </p>
-          </article>
-
-          <article class="content-card">
-            <h3>7. Assignment</h3>
-            <p>{{ currentLesson.assignment || "No assignment provided." }}</p>
-          </article>
-
-          <!-- PERIODS FROM THE DATABASE -->
-          <article
-            v-for="period in sortedPeriods"
-            :key="period.id || period.periodNumber"
-            class="content-card period-card"
-          >
-            <h3>
-              {{ 7 + period.periodNumber }}. Period {{ period.periodNumber }}
-              <span v-if="period.title">— {{ period.title }}</span>
-            </h3>
-
-            <p>
-              <strong>Duration:</strong>
-              {{ period.duration || 40 }} minutes
-            </p>
-
-            <p><strong>Teacher's Activities:</strong></p>
-            <p>{{ period.teacherActivities || "Not provided." }}</p>
-
-            <p><strong>Students' Activities:</strong></p>
-            <p>{{ period.studentActivities || "Not provided." }}</p>
-
-            <h4 class="lesson-subheading">Lessons</h4>
-            <p>{{ period.lessonContent || "Not provided." }}</p>
-
-            <h4 class="lesson-subheading">
-              Speed Work {{ period.periodNumber }}
-            </h4>
-
-            <ol v-if="asList(period.speedWork).length">
-              <li
-                v-for="(question, index) in asList(period.speedWork)"
-                :key="index"
-              >
-                {{ question }}
-              </li>
-            </ol>
-            <p v-else class="empty-message">
-              No speed work questions provided.
-            </p>
-
-            <template v-if="period.conclusion">
-              <h4 class="lesson-subheading">Conclusion</h4>
-              <p>{{ period.conclusion }}</p>
-            </template>
-          </article>
-
-          <div v-if="sortedPeriods.length === 0" class="content-card">
-            No period details have been saved for this lesson note.
-          </div>
-        </template>
-
-        <div v-else class="content-card empty-message">
-          Select a week to view its lesson note.
-        </div>
-      </main>
-
-      <!-- INFORMATION PANEL -->
-      <aside class="info-panel">
-        <div class="info-card">
-          <h3>Lesson Note Information</h3>
-
-          <div class="info-row">
-            <strong>Academic Session</strong>
-            <span>{{ currentLesson?.academicSession || filters.academicSession || "—" }}</span>
-          </div>
-
-          <div class="info-row">
-            <strong>Term</strong>
-            <span>{{ currentLesson?.term || filters.term || "—" }}</span>
-          </div>
-
-          <div class="info-row">
-            <strong>Class</strong>
-            <span>{{ currentLesson?.className || filters.className || "—" }}</span>
-          </div>
-
-          <div class="info-row">
-            <strong>Subject</strong>
-            <span>{{ currentLesson?.subject || filters.subject || "—" }}</span>
-          </div>
-
-          <div class="info-row">
-            <strong>Week</strong>
-            <span>{{ currentLesson?.weekNumber ?? "—" }}</span>
-          </div>
-
-          <div class="info-row">
-            <strong>Topic</strong>
-            <span>{{ currentLesson?.topic || "—" }}</span>
-          </div>
-        </div>
-
-        <div class="action-card">
-          <button
-            class="primary-btn full-btn"
-            :disabled="!currentLesson || detailLoading"
-            @click="printLesson"
-          >
-            Print Lesson Note
-          </button>
-          <p class="action-hint">
-            Use your browser's print window to print or save as PDF.
+    <!-- RESULTS -->
+    <section class="results-section">
+      <div class="results-heading">
+        <div>
+          <h2>Available Lesson Notes</h2>
+          <p>
+            {{ filteredNotes.length }}
+            lesson note(s) found
           </p>
         </div>
-      </aside>
+
+        <button class="refresh-button" @click="loadLessonNotes">
+          ↻ Refresh
+        </button>
+      </div>
+
+      <div v-if="loading" class="status-message">
+        <div class="loader"></div>
+        <p>Loading lesson notes...</p>
+      </div>
+
+      <div v-else-if="errorMessage" class="status-message error">
+        {{ errorMessage }}
+        <button @click="loadLessonNotes">Try Again</button>
+      </div>
+
+      <div v-else-if="filteredNotes.length === 0" class="empty-state">
+        <div class="empty-icon">📄</div>
+        <h3>No lesson notes found</h3>
+        <p>
+          There are currently no uploaded lesson notes matching your selection.
+        </p>
+      </div>
+
+      <div v-else class="notes-grid">
+        <article
+          v-for="note in filteredNotes"
+          :key="note.id"
+          class="note-card"
+        >
+          <div class="card-top">
+            <div class="pdf-badge">PDF</div>
+            <span class="available-label">Available</span>
+          </div>
+
+          <h3>{{ note.subject }}</h3>
+
+          <div class="note-information">
+            <div>
+              <span>Class</span>
+              <strong>{{ note.className }}</strong>
+            </div>
+
+            <div>
+              <span>Term</span>
+              <strong>{{ note.term }}</strong>
+            </div>
+          </div>
+
+          <div class="file-information">
+            <span class="file-symbol">📄</span>
+            <span>
+              {{ note.originalFileName || "Complete lesson note PDF" }}
+            </span>
+          </div>
+
+          <div class="card-actions">
+            <button
+              class="read-button"
+              @click="openReader(note)"
+            >
+              <span>📖</span> Read Lesson Note
+            </button>
+
+            <button
+              class="download-button"
+              @click="downloadPDF(note)"
+            >
+              <span>⬇</span> Download
+            </button>
+          </div>
+        </article>
+      </div>
     </section>
+
+    <!-- PDF READER -->
+    <div
+      v-if="selectedNote"
+      class="reader-overlay"
+      @click.self="closeReader"
+    >
+      <div class="reader-window">
+        <header class="reader-header">
+          <div class="reader-title">
+            <strong>{{ selectedNote.subject }}</strong>
+            <span>
+              {{ selectedNote.className }} · {{ selectedNote.term }}
+            </span>
+          </div>
+
+          <div class="reader-actions">
+            <button
+              class="reader-download"
+              @click="downloadPDF(selectedNote)"
+            >
+              ⬇ Download
+            </button>
+
+            <button
+              class="fullscreen-button"
+              @click="toggleFullscreen"
+              :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+            >
+              {{ isFullscreen ? "⛶ Exit" : "⛶ Fullscreen" }}
+            </button>
+
+            <button
+              class="reader-close"
+              @click="closeReader"
+              aria-label="Close PDF reader"
+            >
+              ✕
+            </button>
+          </div>
+        </header>
+
+        <iframe
+          v-if="selectedNote.pdfUrl"
+          :src="readerUrl"
+          class="pdf-viewer"
+          title="ETrend lesson note PDF"
+          allowfullscreen
+        ></iframe>
+
+        <div v-else class="reader-error">
+          PDF document is unavailable.
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -319,613 +207,662 @@ export default {
 
   data() {
     return {
-      filters: {
-        academicSession: this.$route.query.academicSession || "2026/2027",
-        term: this.$route.query.term || "First Term",
-        className: this.$route.query.class || "JSS 1",
-        subject: this.$route.query.subject || "Mathematics",
-      },
+      apiBase: import.meta.env.VITE_APP_BASE_URL,
+
+      classes: [
+        "KG 1",
+        "KG 2",
+        "Nursery 1",
+        "Nursery 2",
+        "Primary 1",
+        "Primary 2",
+        "Primary 3",
+        "Primary 4",
+        "Primary 5",
+        "Primary 6",
+        "JSS 1",
+        "JSS 2",
+        "JSS 3",
+        "SS 1",
+        "SS 2",
+        "SS 3",
+      ],
 
       subjects: [
         "Mathematics",
         "English Language",
         "Basic Science",
         "Basic Technology",
+        "Social Studies",
+        "Civic Education",
         "Agricultural Science",
+        "Computer Studies",
+        "Business Studies",
+        "Home Economics",
+        "Physical and Health Education",
+        "Christian Religious Studies",
+        "Islamic Religious Studies",
+        "Geography",
         "Biology",
         "Chemistry",
         "Physics",
-        "Further Mathematics",
         "Economics",
-        "Civic Education",
         "Government",
-        "Geography",
         "Literature in English",
-        "Christian Religious Studies",
-        "Islamic Religious Studies",
-        "Computer Studies",
-        "Business Studies",
         "Commerce",
         "Financial Accounting",
-        "Social Studies",
-        "Home Economics",
-        "Physical and Health Education",
-        "History",
-        "French",
-        "Data Processing",
+        "Further Mathematics",
       ],
 
-      weeks: [],
-      selectedWeek: null,
-      selectedLesson: null,
+      filters: {
+        className: "",
+        subject: "",
+        term: "",
+      },
 
+      lessonNotes: [],
       loading: false,
-      detailLoading: false,
-
       errorMessage: "",
-      detailError: "",
-      message: "",
-      requestNumber: 0,
-      detailRequestNumber: 0,
+
+      selectedNote: null,
+      isFullscreen: false,
     };
   },
 
   computed: {
-    currentLesson() {
-      return this.selectedLesson;
-    },
-
-    sortedPeriods() {
-      const periods = this.currentLesson?.periods;
-
-      if (!Array.isArray(periods)) {
-        return [];
-      }
-
-      return [...periods].sort(
-        (a, b) => Number(a.periodNumber) - Number(b.periodNumber)
-      );
-    },
-  },
-
-  methods: {
-    async loadLessonNotes() {
-      const requestNumber = ++this.requestNumber;
-
-      this.loading = true;
-      this.errorMessage = "";
-      this.detailError = "";
-      this.message = "";
-      this.weeks = [];
-      this.selectedLesson = null;
-      this.selectedWeek = null;
-
-      try {
-        const baseUrl = import.meta.env.VITE_APP_BASE_URL;
-
-        if (!baseUrl) {
-          throw new Error(
-            "VITE_APP_BASE_URL is not configured for the frontend."
-          );
-        }
-
-        const response = await axios.get(
-          `${baseUrl.replace(/\/+$/, "")}/api/lesson-notes`,
-          {
-            params: {
-              academicSession: this.filters.academicSession || undefined,
-              term: this.filters.term || undefined,
-              className: this.filters.className || undefined,
-              subject: this.filters.subject || undefined,
-            },
-          }
+    filteredNotes() {
+      return this.lessonNotes.filter((note) => {
+        return (
+          (!this.filters.className ||
+            note.className === this.filters.className) &&
+          (!this.filters.subject ||
+            note.subject === this.filters.subject) &&
+          (!this.filters.term ||
+            note.term === this.filters.term)
         );
-
-        // Ignore an older request if the user loads again.
-        if (requestNumber !== this.requestNumber) return;
-
-        const records = response.data.lessonNotes;
-
-        if (!Array.isArray(records)) {
-          throw new Error(
-            "The server response does not contain a lessonNotes array."
-          );
-        }
-
-        this.weeks = records
-          .filter(
-            (item) =>
-              item &&
-              item.id != null &&
-              Number.isFinite(Number(item.weekNumber))
-          )
-          .sort(
-            (a, b) => Number(a.weekNumber) - Number(b.weekNumber)
-          );
-
-        if (this.weeks.length > 0) {
-          await this.selectWeek(this.weeks[0]);
-        } else {
-          this.message =
-            "No saved lesson notes match the selected filters.";
-        }
-      } catch (error) {
-        if (requestNumber !== this.requestNumber) return;
-
-        console.error("Failed to load lesson notes:", error);
-
-        this.errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "Unable to load lesson notes. Please check your backend connection.";
-      } finally {
-        if (requestNumber === this.requestNumber) {
-          this.loading = false;
-        }
-      }
+      });
     },
 
-    async selectWeek(weekOrNumber) {
-      const week =
-        typeof weekOrNumber === "object"
-          ? weekOrNumber
-          : this.weeks.find(
-              (item) => Number(item.weekNumber) === Number(weekOrNumber)
-            );
+    readerUrl() {
+      if (!this.selectedNote?.pdfUrl) return "";
 
-      if (!week || week.id == null) {
-        this.selectedLesson = null;
-        this.detailError = "The selected lesson note has no valid database ID.";
-        return;
-      }
-
-      const requestNumber = ++this.detailRequestNumber;
-
-      this.selectedWeek = Number(week.weekNumber);
-      this.selectedLesson = null;
-      this.detailError = "";
-      this.detailLoading = true;
-
-      try {
-        const baseUrl = import.meta.env.VITE_APP_BASE_URL;
-
-        if (!baseUrl) {
-          throw new Error(
-            "VITE_APP_BASE_URL is not configured for the frontend."
-          );
-        }
-
-        const response = await axios.get(
-          `${baseUrl.replace(/\/+$/, "")}/api/lesson-notes/${week.id}`
-        );
-
-        if (requestNumber !== this.detailRequestNumber) return;
-
-        // The prepared backend returns { lessonNote: {...} }.
-        // Also accept a direct lesson object for compatibility.
-        const lesson = response.data.lessonNote ?? response.data;
-
-        if (!lesson || lesson.id == null) {
-          throw new Error("The server did not return the requested lesson.");
-        }
-
-        this.selectedLesson = {
-          ...lesson,
-          objectives: this.asList(lesson.objectives),
-          content: this.asList(lesson.content),
-          activities: this.asList(lesson.activities),
-          evaluation: this.asList(lesson.evaluation),
-          periods: Array.isArray(lesson.periods) ? lesson.periods : [],
-        };
-      } catch (error) {
-        if (requestNumber !== this.detailRequestNumber) return;
-
-        console.error("Failed to load selected lesson:", error);
-
-        this.detailError =
-          error.response?.data?.message ||
-          error.message ||
-          "Unable to load the selected lesson note.";
-      } finally {
-        if (requestNumber === this.detailRequestNumber) {
-          this.detailLoading = false;
-        }
-      }
-    },
-
-    asList(value) {
-      if (Array.isArray(value)) {
-        return value.filter(
-          (item) => item !== null && item !== undefined && item !== ""
-        );
-      }
-
-      if (typeof value === "string" && value.trim()) {
-        return value
-          .split(/\r?\n/)
-          .map((item) => item.trim())
-          .filter(Boolean);
-      }
-
-      return [];
-    },
-
-    printLesson() {
-      if (!this.currentLesson) return;
-      window.print();
+      return this.selectedNote.pdfUrl + "#toolbar=1&navpanes=0&view=FitH";
     },
   },
 
   mounted() {
     this.loadLessonNotes();
+
+    window.addEventListener("keydown", this.handleKeydown);
+    document.addEventListener(
+      "fullscreenchange",
+      this.handleFullscreenChange
+    );
+  },
+
+  beforeUnmount() {
+    this.cleanupReader();
+  },
+
+  beforeDestroy() {
+    this.cleanupReader();
+  },
+
+  methods: {
+    async loadLessonNotes() {
+      this.loading = true;
+      this.errorMessage = "";
+
+      try {
+        const response = await axios.get(
+          `${this.apiBase}/api/lesson-note-pdfs`,
+          {
+            params: {
+              className: this.filters.className || undefined,
+              subject: this.filters.subject || undefined,
+              term: this.filters.term || undefined,
+            },
+          }
+        );
+
+        this.lessonNotes = response.data.lessonNotes || [];
+      } catch (error) {
+        console.error("Lesson notes loading error:", error);
+
+        this.errorMessage =
+          error.response?.data?.message ||
+          "Unable to load lesson notes. Please check your internet connection.";
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    openReader(note) {
+      this.selectedNote = note;
+      this.isFullscreen = false;
+      document.body.style.overflow = "hidden";
+    },
+
+    closeReader() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      this.selectedNote = null;
+      this.isFullscreen = false;
+      document.body.style.overflow = "";
+    },
+
+    async toggleFullscreen() {
+      const reader = document.querySelector(".reader-window");
+
+      if (!reader) return;
+
+      try {
+        if (!document.fullscreenElement) {
+          await reader.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.error("Fullscreen error:", error);
+      }
+    },
+
+    handleFullscreenChange() {
+      this.isFullscreen = !!document.fullscreenElement;
+    },
+
+    handleKeydown(event) {
+      if (event.key === "Escape" && this.selectedNote) {
+        if (!document.fullscreenElement) {
+          this.closeReader();
+        }
+      }
+    },
+
+    cleanupReader() {
+      window.removeEventListener("keydown", this.handleKeydown);
+
+      document.removeEventListener(
+        "fullscreenchange",
+        this.handleFullscreenChange
+      );
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      document.body.style.overflow = "";
+    },
+
+    downloadPDF(note) {
+      if (!note?.pdfUrl) return;
+
+      const link = document.createElement("a");
+
+      link.href = note.pdfUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.download =
+        `${note.className}_${note.subject}_${note.term}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
   },
 };
 </script>
 
 <style scoped>
-.lesson-notes-page {
+.lesson-library {
   min-height: 100vh;
-  padding: 24px;
-  color: #111111;
-  background: #ffffe0;
-  box-sizing: border-box;
+  padding: 25px;
+  background: #fff9d9;
+  color: #111;
 }
 
-.page-header {
+.library-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  color: #ffffff;
-  background: #003366;
-  padding: 20px 24px;
-  border-radius: 10px;
+  justify-content: space-between;
+  margin-bottom: 25px;
 }
 
-.page-header h1 {
-  margin: 0;
-  font-size: 25px;
+.eyebrow {
+  color: #168447;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
-.page-header p {
-  margin: 6px 0 0;
-}
-
-button,
-select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-.back-btn {
-  border: 1px solid #ffffff;
-  border-radius: 6px;
-  padding: 10px 16px;
+.library-header h1 {
   color: #003366;
-  background: #ffffff;
+  font-size: 28px;
+  margin: 7px 0;
 }
 
-.filter-card {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
-  gap: 16px;
-  align-items: end;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid #e2dfb8;
-  border-radius: 10px;
-}
-
-.filter-field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-width: 0;
-}
-
-.filter-field label {
-  font-weight: 700;
+.library-header p {
+  color: #666;
   font-size: 14px;
+  margin: 0;
 }
 
-.filter-field select {
-  width: 100%;
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid #c8c8c8;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #111111;
+.header-icon {
+  font-size: 42px;
 }
 
-.primary-btn {
-  border: none;
-  border-radius: 6px;
-  padding: 11px 16px;
-  color: #ffffff;
-  background: #003366;
-  font-weight: 700;
+.filter-card,
+.results-section {
+  background: #fffef8;
+  border: 1px solid #e5dcae;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 25px;
 }
 
-.primary-btn:hover:not(:disabled) {
-  background: #064b8b;
-}
-
-.message {
-  margin: 16px 0;
-  padding: 14px;
-  border-radius: 7px;
-  background: #ffffff;
-  border: 1px solid #d7d7d7;
-}
-
-.error-message {
-  color: #8a1717;
-  border-color: #d99a9a;
-  background: #fff2f2;
-}
-
-.retry-btn {
-  margin-left: 10px;
-  padding: 7px 10px;
-  color: #ffffff;
-  background: #003366;
-  border: none;
-  border-radius: 5px;
-}
-
-.lesson-layout {
-  display: grid;
-  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr) minmax(220px, 260px);
-  align-items: start;
-  gap: 20px;
-}
-
-.weeks-panel,
-.info-card,
-.action-card {
-  padding: 16px;
-  border: 1px solid #e2dfb8;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.weeks-panel h2 {
-  margin: 0 0 14px;
+.filter-card h2,
+.results-heading h2 {
   color: #003366;
   font-size: 19px;
+  margin: 0 0 18px;
 }
 
-.week-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #003366;
+  margin-bottom: 7px;
+}
+
+.filter-group select {
   width: 100%;
-  margin-bottom: 8px;
-  padding: 12px;
-  border: 1px solid #dddddd;
+  height: 44px;
+  padding: 0 10px;
+  background: #fffef8;
+  border: 1px solid #d8cda0;
   border-radius: 7px;
-  background: #ffffff;
-  text-align: left;
-  color: #111111;
+  color: #111;
+  outline: none;
 }
 
-.week-item span {
-  overflow-wrap: anywhere;
-  font-size: 13px;
-}
-
-.week-item.selected {
-  color: #ffffff;
-  background: #003366;
+.filter-group select:focus {
   border-color: #003366;
 }
 
-.lesson-content {
-  min-width: 0;
+.search-button {
+  height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 7px;
+  background: #168447;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.lesson-title {
-  margin-bottom: 18px;
-  padding: 22px;
-  color: #ffffff;
-  background: #003366;
-  border-radius: 10px;
+.search-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.lesson-title > span {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.lesson-title h2 {
-  margin: 8px 0;
-  overflow-wrap: anywhere;
-}
-
-.lesson-title p {
-  margin-bottom: 0;
-}
-
-.content-card {
-  margin-bottom: 16px;
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid #e2dfb8;
-  border-radius: 10px;
-  overflow-wrap: anywhere;
-}
-
-.content-card h3 {
-  margin: 0 0 14px;
-  color: #003366;
-  font-size: 18px;
-}
-
-.content-card h4 {
-  color: #003366;
-}
-
-.content-card p {
-  line-height: 1.7;
-  white-space: pre-wrap;
-}
-
-.content-card li {
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-
-.period-card {
-  border-left: 5px solid #003366;
-}
-
-.lesson-subheading {
-  margin-top: 22px;
-}
-
-.info-panel {
+.results-heading {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.info-card h3 {
-  margin: 0 0 16px;
+.results-heading h2 {
+  margin-bottom: 5px;
+}
+
+.results-heading p {
+  color: #777;
+  font-size: 13px;
+  margin: 0;
+}
+
+.refresh-button {
+  background: #003366;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 9px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.note-card {
+  border: 1px solid #e8e1c9;
+  background: white;
+  border-radius: 11px;
+  padding: 17px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.note-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 30, 60, 0.08);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.pdf-badge {
+  background: #ffeded;
+  color: #c62828;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 9px 12px;
+  border-radius: 7px;
+}
+
+.available-label {
+  color: #168447;
+  background: #edf8ed;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 9px;
+  border-radius: 20px;
+}
+
+.note-card h3 {
   color: #003366;
   font-size: 18px;
+  margin: 0 0 16px;
 }
 
-.info-row {
+.note-information {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee8d7;
+}
+
+.note-information div {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  padding: 12px 0;
-  border-bottom: 1px solid #eeeeee;
 }
 
-.info-row:last-child {
-  border-bottom: none;
+.note-information span {
+  color: #888;
+  font-size: 11px;
 }
 
-.info-row strong {
+.note-information strong {
+  color: #333;
   font-size: 13px;
-  color: #555555;
 }
 
-.info-row span {
+.file-information {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #777;
+  font-size: 11px;
+  padding: 13px 0;
   overflow-wrap: anywhere;
 }
 
-.full-btn {
-  width: 100%;
+.file-symbol {
+  font-size: 18px;
 }
 
-.action-hint {
-  margin-bottom: 0;
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.read-button,
+.download-button {
+  flex: 1;
+  border: none;
+  border-radius: 7px;
+  padding: 11px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.read-button {
+  background: #003366;
+  color: white;
+}
+
+.download-button {
+  background: #168447;
+  color: white;
+}
+
+.status-message,
+.empty-state {
+  padding: 45px 15px;
+  text-align: center;
+  color: #777;
+}
+
+.status-message.error {
+  color: #c62828;
+}
+
+.status-message button {
+  display: block;
+  margin: 12px auto 0;
+  border: none;
+  border-radius: 6px;
+  background: #003366;
+  color: white;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e4e4e4;
+  border-top-color: #003366;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+
+.empty-state h3 {
+  color: #003366;
+  margin: 0 0 8px;
+}
+
+.empty-state p {
   font-size: 13px;
-  line-height: 1.5;
-  color: #555555;
+  margin: 0;
 }
 
-.empty-message {
-  color: #666666;
-  line-height: 1.6;
+.reader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 20, 45, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
 }
 
-@media (max-width: 1100px) {
-  .filter-card {
+.reader-window {
+  width: 100%;
+  max-width: 1200px;
+  height: 95vh;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.reader-header {
+  min-height: 65px;
+  background: #003366;
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.reader-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.reader-title strong {
+  font-size: 15px;
+}
+
+.reader-title span {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.reader-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-download,
+.fullscreen-button {
+  border: none;
+  border-radius: 6px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.reader-download {
+  background: #168447;
+  color: white;
+}
+
+.fullscreen-button {
+  background: white;
+  color: #003366;
+}
+
+.reader-close {
+  background: #ffeded;
+  color: #c62828;
+  border: none;
+  border-radius: 6px;
+  width: 35px;
+  height: 35px;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.pdf-viewer {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #eee;
+}
+
+.reader-error {
+  padding: 30px;
+  text-align: center;
+  color: #c62828;
+}
+
+@media (max-width: 950px) {
+  .notes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .lesson-layout {
-    grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
-  }
-
-  .info-panel {
-    grid-column: 1 / -1;
-    display: grid;
+  .filter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 700px) {
-  .lesson-notes-page {
-    padding: 12px;
+@media (max-width: 600px) {
+  .lesson-library {
+    padding: 13px;
   }
 
-  .page-header {
-    padding: 16px;
-  }
-
-  .page-header h1 {
-    font-size: 20px;
+  .library-header h1 {
+    font-size: 22px;
   }
 
   .filter-card,
-  .lesson-layout,
-  .info-panel {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .info-panel {
-    display: flex;
-  }
-
-  .lesson-layout {
-    gap: 14px;
-  }
-
-  .content-card {
+  .results-section {
     padding: 15px;
   }
-}
 
-@media print {
-  .page-header .back-btn,
-  .filter-card,
-  .weeks-panel,
-  .info-panel,
-  .message {
-    display: none !important;
+  .filter-grid,
+  .notes-grid {
+    grid-template-columns: 1fr;
   }
 
-  .lesson-notes-page {
+  .search-button {
+    width: 100%;
+  }
+
+  .reader-overlay {
     padding: 0;
-    background: #ffffff;
   }
 
-  .lesson-layout {
-    display: block;
+  .reader-window {
+    height: 100vh;
+    border-radius: 0;
   }
 
-  .lesson-title,
-  .content-card {
-    color: #000000;
-    background: #ffffff;
-    border: 1px solid #cccccc;
-    break-inside: avoid;
+  .reader-header {
+    flex-wrap: wrap;
   }
 
-  .lesson-title h2,
-  .content-card h3,
-  .content-card h4 {
-    color: #000000;
+  .reader-actions {
+    gap: 5px;
+  }
+
+  .reader-download,
+  .fullscreen-button {
+    padding: 8px;
+    font-size: 11px;
   }
 }
 </style>
-
-

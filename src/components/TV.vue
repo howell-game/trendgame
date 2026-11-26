@@ -1,51 +1,34 @@
-<template>
-  <div class="tv-overlay">
 
+<template>
+  <div class="tv-overlay" @click.self="closeModal">
     <div class="tv-modal">
 
-      <button
-        class="close-btn"
-        @click="$emit('close')"
-      >
-        ×
-      </button>
+      <button class="close-btn" @click="closeModal">×</button>
 
-      <h2>TV Subscription</h2>
+      <div class="modal-header">
+        <div class="tv-icon">📺</div>
+        <div>
+          <h2>TV Subscription</h2>
+          <p class="subtitle">Subscribe or renew your TV decoder</p>
+        </div>
+      </div>
 
-      <p class="subtitle">
-        Subscribe to your TV decoder
-      </p>
-
-
-      <!-- PROVIDERS -->
+      <div class="section-label">SELECT TV PROVIDER</div>
 
       <div class="providers">
-
         <button
           v-for="item in providers"
           :key="item.value"
           class="provider-btn"
-          :class="{
-            active:
-              selectedProvider ===
-              item.value
-          }"
+          :class="{ active: selectedProvider === item.value }"
           @click="selectProvider(item.value)"
         >
           {{ item.name }}
         </button>
-
       </div>
 
-
-      <!-- SMARTCARD -->
-
       <div class="field">
-
-        <label>
-          Smartcard Number
-        </label>
-
+        <label>Smartcard Number</label>
         <input
           v-model="smartcardNumber"
           type="text"
@@ -53,283 +36,157 @@
           maxlength="20"
           placeholder="Enter smartcard number"
         />
-
       </div>
-
 
       <button
         class="verify-btn"
-        :disabled="
-          !selectedProvider ||
-          !smartcardNumber ||
-          verifying
-        "
+        :disabled="!selectedProvider || !smartcardNumber || verifying"
         @click="verifySmartcard"
       >
-        {{
-          verifying
-            ? "Verifying..."
-            : "Verify Smartcard"
-        }}
+        {{ verifying ? "Verifying Smartcard..." : "Verify Smartcard →" }}
       </button>
 
-
-      <!-- CUSTOMER -->
-
-      <div
-        v-if="customer"
-        class="customer-box"
-      >
+      <div v-if="customer" class="customer-box">
+        <div class="verified-heading">
+          <span>✓</span> Customer Verified
+        </div>
 
         <div>
           <span>Customer</span>
-          <strong>
-            {{ customerName }}
-          </strong>
+          <strong>{{ customerName }}</strong>
         </div>
 
-        <div
-          v-if="customer.currentBouquet"
-        >
+        <div v-if="customer.currentBouquet">
           <span>Current Package</span>
-          <strong>
-            {{ customer.currentBouquet }}
-          </strong>
+          <strong>{{ customer.currentBouquet }}</strong>
         </div>
 
-        <div
-          v-if="customer.Due_Date"
-        >
+        <div v-if="customer.Due_Date">
           <span>Due Date</span>
-          <strong>
-            {{ customer.Due_Date }}
-          </strong>
+          <strong>{{ customer.Due_Date }}</strong>
+        </div>
+      </div>
+
+      <template v-if="customer">
+
+        <div class="section-label">SUBSCRIPTION OPTION</div>
+
+        <div class="subscription-types">
+          <button
+            :class="{ active: subscriptionType === 'change' }"
+            @click="subscriptionType = 'change'; selectedPackage = null"
+          >
+            Change Package
+          </button>
+
+          <button
+            :class="{ active: subscriptionType === 'renew' }"
+            @click="subscriptionType = 'renew'; selectedPackage = null"
+          >
+            Renew
+          </button>
         </div>
 
-      </div>
+        <div v-if="subscriptionType === 'change'" class="packages">
+          <div class="section-label">SELECT YOUR PACKAGE</div>
 
+          <div v-if="!packages.length" class="empty-packages">
+            No packages available for this provider.
+          </div>
 
-      <!-- SUBSCRIPTION TYPE -->
+          <button
+            v-for="pkg in packages"
+            :key="pkg.variation_code"
+            class="package"
+            :class="{
+              selected:
+                selectedPackage &&
+                selectedPackage.variation_code === pkg.variation_code
+            }"
+            @click="selectedPackage = pkg"
+          >
+            <span>{{ pkg.name }}</span>
 
-      <div
-        v-if="customer"
-        class="subscription-types"
-      >
+            <strong>
+              ₦{{ Number(pkg.variation_amount).toLocaleString() }}
+            </strong>
+          </button>
+        </div>
 
-        <button
-          :class="{
-            active:
-              subscriptionType ===
-              'change'
-          }"
-          @click="
-            subscriptionType = 'change'
-          "
-        >
-          Change Package
-        </button>
+        <div v-if="subscriptionType === 'renew'" class="renew-box">
+          <span>Renewal Amount</span>
+          <strong>₦{{ Number(renewalAmount).toLocaleString() }}</strong>
+        </div>
 
-        <button
-          :class="{
-            active:
-              subscriptionType ===
-              'renew'
-          }"
-          @click="
-            subscriptionType = 'renew'
-          "
-        >
-          Renew
-        </button>
-
-      </div>
-
-
-      <!-- PACKAGES -->
-
-      <div
-        v-if="
-          customer &&
-          subscriptionType ===
-            'change'
-        "
-        class="packages"
-      >
-
-        <div class="section-title">
-          Select Package
+        <div class="field">
+          <label>Phone Number</label>
+          <input
+            v-model="phoneNumber"
+            type="tel"
+            maxlength="11"
+            inputmode="numeric"
+            placeholder="08012345678"
+          />
         </div>
 
         <button
-          v-for="pkg in packages"
-          :key="
-            pkg.variation_code
+          class="buy-btn"
+          :disabled="
+            purchasing ||
+            !phoneNumber ||
+            (subscriptionType === 'change' && !selectedPackage) ||
+            (subscriptionType === 'renew' && renewalAmount <= 0)
           "
-          class="package"
-          :class="{
-            selected:
-              selectedPackage &&
-              selectedPackage.variation_code ===
-                pkg.variation_code
-          }"
-          @click="
-            selectedPackage = pkg
-          "
+          @click="purchaseTV"
         >
-
-          <span>
-            {{ pkg.name }}
-          </span>
-
-          <strong>
-            ₦{{
-              Number(
-                pkg.variation_amount
-              ).toLocaleString()
-            }}
-          </strong>
-
-        </button>
-
-      </div>
-
-
-      <!-- RENEWAL -->
-
-      <div
-        v-if="
-          customer &&
-          subscriptionType ===
-            'renew'
-        "
-        class="renew-box"
-      >
-
-        <span>
-          Renewal Amount
-        </span>
-
-        <strong>
-          ₦{{
-            Number(
-              renewalAmount
-            ).toLocaleString()
+          {{
+            purchasing
+              ? "Processing Payment..."
+              : "Subscribe Now"
           }}
-        </strong>
+        </button>
 
-      </div>
+      </template>
 
-
-      <!-- PHONE -->
-
-      <div
-        v-if="customer"
-        class="field"
-      >
-
-        <label>
-          Phone Number
-        </label>
-
-        <input
-          v-model="phoneNumber"
-          type="tel"
-          maxlength="11"
-          placeholder="08012345678"
-        />
-
-      </div>
-
-
-      <!-- BUY -->
-
-      <button
-        v-if="customer"
-        class="buy-btn"
-        :disabled="
-          purchasing ||
-          !phoneNumber ||
-          (
-            subscriptionType ===
-              'change' &&
-            !selectedPackage
-          )
-        "
-        @click="purchaseTV"
-      >
-
-        {{
-          purchasing
-            ? "Processing..."
-            : "Subscribe Now"
-        }}
-
-      </button>
-
-
-      <div
-        v-if="message"
-        class="message"
-        :class="messageType"
-      >
+      <div v-if="message" class="message" :class="messageType">
         {{ message }}
       </div>
 
-    </div>
+      <div class="secure-footer">
+        <span>🔒</span> Secure TV Subscription Payment
+      </div>
 
+    </div>
   </div>
 </template>
 
-
 <script>
 export default {
-
   name: "TV",
 
   data() {
     return {
-
       providers: [
-        {
-          name: "DStv",
-          value: "dstv"
-        },
-        {
-          name: "GOtv",
-          value: "gotv"
-        },
-        {
-          name: "StarTimes",
-          value: "startimes"
-        }
+        { name: "DStv", value: "dstv" },
+        { name: "GOtv", value: "gotv" },
+        { name: "StarTimes", value: "startimes" }
       ],
 
       selectedProvider: "",
-
       smartcardNumber: "",
-
       phoneNumber: "",
-
       customer: null,
-
       packages: [],
-
       selectedPackage: null,
-
       subscriptionType: "change",
-
       verifying: false,
-
       purchasing: false,
-
       message: "",
-
       messageType: ""
     };
   },
 
   computed: {
-
     userId() {
       return this.$store.getters.userId;
     },
@@ -351,252 +208,202 @@ export default {
     }
   },
 
+  mounted() {
+    window.addEventListener("keydown", this.handleEscape);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("keydown", this.handleEscape);
+  },
+
+  beforeDestroy() {
+    // Supports Vue 2 projects as well.
+    window.removeEventListener("keydown", this.handleEscape);
+  },
+
   methods: {
+    closeModal() {
+      this.$emit("close");
+    },
+
+    handleEscape(event) {
+      if (event.key === "Escape") {
+        this.closeModal();
+      }
+    },
 
     selectProvider(provider) {
-
-      this.selectedProvider =
-        provider;
-
+      this.selectedProvider = provider;
       this.customer = null;
-
       this.packages = [];
-
       this.selectedPackage = null;
-
       this.message = "";
+      this.phoneNumber = "";
+      this.subscriptionType = "change";
 
       this.loadPackages();
     },
 
-
     async loadPackages() {
-
-      if (!this.selectedProvider) {
-        return;
-      }
+      if (!this.selectedProvider) return;
 
       try {
-
-        const response =
-          await fetch(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/packages/${this.selectedProvider}`,
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${localStorage.getItem("token")}`
-              }
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/packages/${this.selectedProvider}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
             }
-          );
+          }
+        );
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           throw new Error(
-            data.message ||
-            "Unable to load TV packages."
+            data.message || "Unable to load TV packages."
           );
         }
 
-        this.packages =
-          data.packages || [];
+        this.packages = data.packages || [];
 
       } catch (error) {
-
         console.error(error);
 
         this.message =
-          error.message ||
-          "Unable to load TV packages.";
+          error.message || "Unable to load TV packages.";
 
-        this.messageType =
-          "error";
+        this.messageType = "error";
       }
     },
 
-
     async verifySmartcard() {
-
       this.message = "";
+      this.customer = null;
+      this.selectedPackage = null;
 
-      if (
-        !this.selectedProvider ||
-        !this.smartcardNumber
-      ) {
-        return;
-      }
+      if (!this.selectedProvider || !this.smartcardNumber) return;
 
       this.verifying = true;
 
       try {
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/verify`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({
+              provider: this.selectedProvider,
+              smartcardNumber: this.smartcardNumber
+            })
+          }
+        );
 
-        const response =
-          await fetch(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/verify`,
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                Authorization:
-                  `Bearer ${localStorage.getItem("token")}`
-              },
-
-              body: JSON.stringify({
-                provider:
-                  this.selectedProvider,
-
-                smartcardNumber:
-                  this.smartcardNumber
-              })
-            }
-          );
-
-        const data =
-          await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           throw new Error(
-            data.message ||
-            "Smartcard verification failed."
+            data.message || "Smartcard verification failed."
           );
         }
 
-        this.customer =
-          data.customer || {};
+        this.customer = data.customer || {};
 
-        this.message =
-          "Smartcard verified successfully.";
-
-        this.messageType =
-          "success";
+        this.message = "Smartcard verified successfully.";
+        this.messageType = "success";
 
       } catch (error) {
-
         this.customer = null;
 
         this.message =
-          error.message ||
-          "Smartcard verification failed.";
+          error.message || "Smartcard verification failed.";
 
-        this.messageType =
-          "error";
+        this.messageType = "error";
 
       } finally {
-
         this.verifying = false;
       }
     },
 
-
     async purchaseTV() {
-
       this.message = "";
 
       if (
         !this.selectedProvider ||
         !this.smartcardNumber ||
-        !this.phoneNumber
+        !this.phoneNumber ||
+        !this.customer
       ) {
         return;
       }
 
       if (
-        this.subscriptionType ===
-          "change" &&
+        this.subscriptionType === "change" &&
         !this.selectedPackage
       ) {
-        this.message =
-          "Select a TV package.";
+        this.message = "Select a TV package.";
+        this.messageType = "error";
+        return;
+      }
 
-        this.messageType =
-          "error";
-
+      if (
+        this.subscriptionType === "renew" &&
+        this.renewalAmount <= 0
+      ) {
+        this.message = "A valid renewal amount is unavailable.";
+        this.messageType = "error";
         return;
       }
 
       this.purchasing = true;
 
       try {
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/buy`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({
+              userId: this.userId,
+              provider: this.selectedProvider,
+              smartcardNumber: this.smartcardNumber,
+              variationCode:
+                this.selectedPackage?.variation_code || "renew",
+              phoneNumber: this.phoneNumber,
+              subscriptionType: this.subscriptionType
+            })
+          }
+        );
 
-        const response =
-          await fetch(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-tv/buy`,
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                Authorization:
-                  `Bearer ${localStorage.getItem("token")}`
-              },
-
-              body: JSON.stringify({
-
-                userId:
-                  this.userId,
-
-                provider:
-                  this.selectedProvider,
-
-                smartcardNumber:
-                  this.smartcardNumber,
-
-                variationCode:
-                  this.selectedPackage
-                    ?.variation_code ||
-                  "renew",
-
-                phoneNumber:
-                  this.phoneNumber,
-
-                subscriptionType:
-                  this.subscriptionType
-              })
-            }
-          );
-
-        const data =
-          await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           throw new Error(
-            data.message ||
-            "TV subscription failed."
+            data.message || "TV subscription failed."
           );
         }
 
         this.message =
-          data.message ||
-          "TV subscription successful.";
+          data.message || "TV subscription successful.";
 
-        this.messageType =
-          "success";
+        this.messageType = "success";
 
-        this.$store.dispatch(
-          "loadEtrendAccount"
-        );
-
-        this.$store.dispatch(
-          "loadEtrendTransactions"
-        );
+        await this.$store.dispatch("loadEtrendAccount");
+        await this.$store.dispatch("loadEtrendTransactions");
 
       } catch (error) {
-
         this.message =
-          error.message ||
-          "TV subscription failed.";
+          error.message || "TV subscription failed.";
 
-        this.messageType =
-          "error";
+        this.messageType = "error";
 
       } finally {
-
         this.purchasing = false;
       }
     }
@@ -604,130 +411,184 @@ export default {
 };
 </script>
 
-
 <style scoped>
-
 .tv-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.78);
+  z-index: 9999;
+  background: rgba(0, 25, 50, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 15px;
+  padding: 14px;
+  backdrop-filter: blur(5px);
 }
 
 .tv-modal {
-  width: 100%;
-  max-width: 470px;
-  max-height: 92vh;
-  overflow-y: auto;
-  background: linear-gradient(
-    145deg,
-    #050505,
-    #111111
-  );
-  border: 1px solid #292929;
-  border-radius: 16px;
-  padding: 20px;
   position: relative;
-  color: white;
+  width: 100%;
+  max-width: 480px;
+  max-height: 94vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  border-radius: 18px;
+  background: #fff9d9;
+  border: 1px solid #e8dca4;
+  color: #111;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .close-btn {
   position: absolute;
-  right: 14px;
-  top: 10px;
-  background: none;
+  top: 13px;
+  right: 17px;
+  width: 34px;
+  height: 34px;
   border: none;
-  color: white;
-  font-size: 30px;
+  border-radius: 50%;
+  background: #f1e8bd;
+  color: #003366;
+  font-size: 25px;
   cursor: pointer;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e4d9ad;
+  margin-bottom: 20px;
+}
+
+.tv-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #003366;
+  color: #ffec99;
+  font-size: 25px;
 }
 
 h2 {
   margin: 0;
-  font-size: 22px;
+  color: #003366;
+  font-size: 23px;
+  font-weight: 800;
 }
 
 .subtitle {
-  color: #aaa;
-  font-size: 13px;
-  margin-bottom: 18px;
+  margin: 5px 0 0;
+  color: #5c5c50;
+  font-size: 12px;
+}
+
+.section-label {
+  color: #003366;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  margin: 18px 0 10px;
 }
 
 .providers {
   display: grid;
-  grid-template-columns:
-    repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 16px;
 }
 
 .provider-btn {
-  border: 1px solid #292929;
-  background: #071426;
-  color: white;
-  border-radius: 9px;
-  padding: 11px 5px;
+  padding: 12px 5px;
+  border: 1px solid #d9cfaa;
+  border-radius: 8px;
+  background: #fffdf2;
+  color: #222;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+.provider-btn:hover {
+  border-color: #003366;
 }
 
 .provider-btn.active {
-  background: linear-gradient(
-    135deg,
-    #b30000,
-    #ff2020
-  );
-  border-color: #ff2020;
+  background: #003366;
+  border-color: #003366;
+  color: white;
+  box-shadow: 0 3px 8px rgba(0, 51, 102, 0.2);
 }
 
 .field {
-  margin-bottom: 13px;
+  margin-top: 16px;
 }
 
 .field label {
   display: block;
-  font-size: 12px;
-  color: #bbb;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
+  color: #003366;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .field input {
   width: 100%;
+  height: 46px;
   box-sizing: border-box;
-  background: #071426;
-  border: 1px solid #16385f;
-  border-radius: 9px;
   padding: 12px;
-  color: white;
+  border: 1px solid #d4c99f;
+  border-radius: 8px;
+  background: #fffef8;
+  color: #111;
+  font-size: 14px;
   outline: none;
+  transition: 0.2s;
+}
+
+.field input:focus {
+  border-color: #003366;
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+}
+
+.field input::placeholder {
+  color: #999;
 }
 
 .verify-btn,
 .buy-btn {
   width: 100%;
+  min-height: 47px;
+  margin-top: 15px;
   border: none;
   border-radius: 9px;
-  padding: 12px;
   color: white;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .verify-btn {
-  background: #0d2340;
-  margin-bottom: 15px;
+  background: #003366;
+}
+
+.verify-btn:hover {
+  background: #004785;
 }
 
 .buy-btn {
-  background: linear-gradient(
-    135deg,
-    #b30000,
-    #ff2020
-  );
-  margin-top: 12px;
+  background: #168447;
+  margin-top: 18px;
+}
+
+.buy-btn:hover {
+  background: #106b38;
 }
 
 button:disabled {
@@ -737,119 +598,176 @@ button:disabled {
 
 .customer-box,
 .renew-box {
-  background: #071426;
-  border: 1px solid #16385f;
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid #b6d8bd;
   border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 14px;
+  background: #edf8ed;
 }
 
-.customer-box div {
+.verified-heading {
+  margin-bottom: 10px;
+  color: #168447;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.verified-heading span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #168447;
+  color: white;
+}
+
+.customer-box div:not(.verified-heading) {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid #d5e9d8;
 }
 
 .customer-box span,
 .renew-box span {
-  color: #aaa;
+  color: #555;
   font-size: 12px;
 }
 
 .customer-box strong,
 .renew-box strong {
+  color: #172b1b;
+  font-size: 12px;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .subscription-types {
   display: grid;
-  grid-template-columns:
-    1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
 .subscription-types button {
-  background: #111;
-  color: white;
-  border: 1px solid #292929;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 13px 8px;
+  border: 1px solid #d9cfaa;
+  border-radius: 9px;
+  background: #fffdf2;
+  color: #222;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .subscription-types button.active {
-  background: #310b10;
-  border-color: #5c151d;
+  background: #e4edf7;
+  border: 2px solid #003366;
+  color: #003366;
 }
 
-.section-title {
-  font-size: 13px;
-  color: #bbb;
-  margin-bottom: 8px;
+.packages {
+  margin-top: 18px;
 }
 
 .package {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   text-align: left;
-  background: #050505;
-  color: white;
-  border: 1px solid #292929;
-  padding: 11px;
+  background: #fffef8;
+  color: #222;
+  border: 1px solid #d9cfaa;
+  padding: 13px;
   border-radius: 9px;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+.package:hover {
+  border-color: #003366;
 }
 
 .package.selected {
-  background: #310b10;
-  border-color: #ff2020;
+  background: #e4edf7;
+  border: 2px solid #003366;
+  color: #003366;
 }
 
 .package strong {
   white-space: nowrap;
+  color: #168447;
+}
+
+.empty-packages {
+  padding: 14px;
+  background: #fffdf2;
+  border-radius: 8px;
+  color: #777;
+  font-size: 13px;
 }
 
 .renew-box {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 18px;
+}
+
+.renew-box strong {
+  color: #168447;
+  font-size: 16px;
 }
 
 .message {
-  margin-top: 12px;
-  padding: 10px;
+  margin-top: 14px;
+  padding: 12px;
   border-radius: 8px;
   font-size: 13px;
+  font-weight: 600;
 }
 
 .message.success {
-  background: #073d1c;
-  color: #7cffaa;
+  background: #e2f5e6;
+  border: 1px solid #a5d8b0;
+  color: #146b32;
 }
 
 .message.error {
-  background: #310b10;
-  color: #ff8b8b;
+  background: #ffebeb;
+  border: 1px solid #edb5b5;
+  color: #b42318;
+}
+
+.secure-footer {
+  margin-top: 20px;
+  padding-top: 13px;
+  border-top: 1px solid #e4d9ad;
+  color: #777;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 @media (max-width: 450px) {
-
   .tv-modal {
-    padding: 16px;
-  }
-
-  .providers {
-    grid-template-columns:
-      repeat(3, 1fr);
+    padding: 18px;
+    border-radius: 14px;
   }
 
   .provider-btn {
     font-size: 12px;
   }
-}
 
+  h2 {
+    font-size: 21px;
+  }
+}
 </style>

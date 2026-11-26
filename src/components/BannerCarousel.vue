@@ -74,6 +74,11 @@ export default {
         {
           image: `${import.meta.env.BASE_URL}images/no-stress.jpg`,
           alt: "No Stress, Win"
+        },
+
+        {
+          image: `${import.meta.env.BASE_URL}images/ETrend1.png`,
+          alt: "No Stress, Win"
         }
 
       ],

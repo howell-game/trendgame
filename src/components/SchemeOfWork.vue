@@ -1,458 +1,482 @@
 
 <template>
   <div class="scheme-page">
-    <div class="scheme-container">
-      <header class="scheme-header">
-        <button class="back-button" @click="goBack" type="button">
-          ← Back
-        </button>
+    <div class="page-header">
+      <button class="back-btn" @click="goBack">← Back</button>
 
-        <div class="school-heading">
-          <h1>SCHEME OF WORK</h1>
-          <p>ETREND EDUCATION SERVICES</p>
-          <p class="mock-notice">DEMONSTRATION DATA — NOT AN OFFICIAL SCHOOL SCHEME</p>
+      <h2>Scheme of Work</h2>
+      <p>Load and view your school's Scheme of Work.</p>
+    </div>
+
+    <!-- SEARCH FILTERS -->
+    <div class="search-card">
+      <h3>Select Scheme Details</h3>
+
+      <div class="filters-grid">
+        <div class="form-group">
+          <label>Academic Session</label>
+          <input
+            v-model.trim="filters.academicSession"
+            type="text"
+            placeholder="e.g. 2026/2027"
+            maxlength="20"
+          />
         </div>
 
-        <button class="print-button" @click="printScheme" type="button">
-          Print Scheme
-        </button>
-      </header>
-
-      <section class="scheme-details">
-        <div class="detail-item">
-          <span>TERM</span>
-          <strong>{{ term }}</strong>
+        <div class="form-group">
+          <label>Term</label>
+          <select v-model="filters.term">
+            <option value="">Select Term</option>
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option>Third Term</option>
+          </select>
         </div>
 
-        <div class="detail-item">
-          <span>CLASS</span>
-          <strong>{{ schoolClass }}</strong>
+        <div class="form-group">
+          <label>Class</label>
+          <input
+            v-model.trim="filters.className"
+            type="text"
+            placeholder="e.g. JSS1"
+            maxlength="30"
+          />
         </div>
 
-        <div class="detail-item">
-          <span>SUBJECT</span>
-          <strong>{{ subject }}</strong>
+        <div class="form-group">
+          <label>Subject</label>
+          <input
+            v-model.trim="filters.subject"
+            type="text"
+            placeholder="e.g. Mathematics"
+            maxlength="100"
+          />
         </div>
-
-        <div class="detail-item">
-          <span>ACADEMIC SESSION</span>
-          <strong>{{ academicSession }}</strong>
-        </div>
-      </section>
-
-      <div class="scheme-introduction">
-        <h2>{{ subject }} — {{ schoolClass }}</h2>
-        <p>
-          This sample demonstrates how the scheme of work will appear.
-          The official scheme will be retrieved from the ETrend backend
-          when the backend integration is added.
-        </p>
       </div>
 
-      
-<div v-if="loading" class="scheme-message">
-  Loading scheme of work from the database...
-</div>
+      <button
+        class="load-btn"
+        @click="loadScheme"
+        :disabled="loading"
+      >
+        {{ loading ? "Loading Scheme..." : "Load Scheme" }}
+      </button>
+    </div>
 
-<div v-else-if="errorMessage" class="scheme-message scheme-error">
-  <h3>Scheme Not Available</h3>
-  <p>{{ errorMessage }}</p>
-</div>
+    <!-- ERROR MESSAGE -->
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
 
-<div v-else-if="schemeData.length" class="table-wrapper">
-  <table class="scheme-table">
-    <thead>
-      <tr>
-        <th>Week</th>
-        <th>Topic</th>
-        <th>Learning Objectives</th>
-        <th>Teaching and Learning Activities</th>
-        <th>Evaluation</th>
-      </tr>
-    </thead>
+    <!-- PDF VIEWER -->
+    <div v-if="scheme && pdfUrl" class="pdf-section">
 
-    <tbody>
-      <tr v-for="item in schemeData" :key="item.id || item.week">
-        <td class="week-cell">{{ item.week }}</td>
-        <td><strong>{{ item.topic }}</strong></td>
-        <td>{{ item.objectives }}</td>
-        <td>{{ item.activities }}</td>
-        <td>{{ item.evaluation }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+      <div class="pdf-header">
+        <div>
+          <h3>{{ scheme.subject }} — {{ scheme.class }}</h3>
 
-<div v-else class="scheme-message">
-  No weekly topics have been added to this scheme yet.
-</div>
+          <p>
+            {{ scheme.academicSession }} |
+            {{ scheme.term }}
+          </p>
+        </div>
 
+        <button
+          class="download-btn"
+          @click="downloadPDF"
+          :disabled="downloading"
+        >
+          {{ downloading ? "Preparing Download..." : "↓ Download PDF" }}
+        </button>
+      </div>
 
-      <footer class="scheme-footer">
-        <p>Prepared for teaching and learning purposes.</p>
-        <p>Source: ETrend Education Services demonstration data</p>
-      </footer>
+      <div class="pdf-viewer">
+        <iframe
+          :src="pdfUrl"
+          title="Scheme of Work PDF"
+          width="100%"
+          height="750"
+        ></iframe>
+      </div>
+
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div
+      v-else-if="!loading && !errorMessage"
+      class="empty-state"
+    >
+      <div class="empty-icon">📄</div>
+      <h3>No Scheme Loaded</h3>
+      <p>
+        Select the academic session, term, class and subject,
+        then click Load Scheme to view the document.
+      </p>
     </div>
   </div>
 </template>
 
-
 <script>
-import axios from "axios";
-
 export default {
   name: "SchemeOfWork",
 
   data() {
     return {
-      term: this.$route.query.term || "First Term",
-      schoolClass: this.$route.query.class || "JSS 1",
-      subject: this.$route.query.subject || "Mathematics",
-      academicSession:
-        this.$route.query.academicSession || "2026/2027",
+      filters: {
+        academicSession: "",
+        term: "",
+        className: "",
+        subject: "",
+      },
 
-      schemeData: [],
+      scheme: null,
+      pdfUrl: "",
       loading: false,
-      errorMessage: ""
+      downloading: false,
+      errorMessage: "",
     };
   },
 
   created() {
-    this.fetchScheme();
-  },
+    // Accept details passed from the previous page.
+    const query = this.$route.query;
 
-  watch: {
-    "$route.query": {
-      handler() {
-        this.term = this.$route.query.term || "First Term";
-        this.schoolClass = this.$route.query.class || "JSS 1";
-        this.subject = this.$route.query.subject || "Mathematics";
-        this.academicSession =
-          this.$route.query.academicSession || "2026/2027";
+    this.filters.academicSession =
+      query.academicSession || "2026/2027";
 
-        this.fetchScheme();
-      },
-      deep: true
-    }
+    this.filters.term = query.term || "";
+
+    this.filters.className =
+      query.className || query.class || "";
+
+    this.filters.subject = query.subject || "";
   },
 
   methods: {
-    async fetchScheme() {
-      this.loading = true;
+    async loadScheme() {
       this.errorMessage = "";
-      this.schemeData = [];
+      this.scheme = null;
+      this.pdfUrl = "";
+
+      const {
+        academicSession,
+        term,
+        className,
+        subject,
+      } = this.filters;
+
+      if (
+        !academicSession ||
+        !term ||
+        !className ||
+        !subject
+      ) {
+        this.errorMessage =
+          "Please select or enter the academic session, term, class and subject.";
+
+        return;
+      }
+
+      this.loading = true;
 
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_APP_BASE_URL}/api/schemes-of-work`,
-          {
-            params: {
-              term: this.term,
-              class: this.schoolClass,
-              subject: this.subject,
-              academicSession: this.academicSession
-            }
-          }
+        const baseUrl = (
+          import.meta.env.VITE_APP_BASE_URL || ""
+        ).replace(/\/+$/, "");
+
+        const params = new URLSearchParams({
+          academicSession,
+          term,
+          class: className,
+          subject,
+        });
+
+        const response = await fetch(
+          `${baseUrl}/api/schemes-of-work?${params.toString()}`
         );
 
-        if (!response.data.success) {
+        const result = await response.json();
+
+        if (!response.ok) {
           throw new Error(
-            response.data.message || "Unable to load the scheme."
+            result.message || "Scheme of Work not found."
           );
         }
 
-        const scheme = response.data.scheme;
-
-        this.term = scheme.term;
-        this.schoolClass = scheme.class;
-        this.subject = scheme.subject;
-        this.academicSession = scheme.academicSession;
-        this.schemeData = response.data.weeks || [];
-
-        if (this.schemeData.length === 0) {
-          this.errorMessage =
-            "The scheme exists, but no weekly topics have been added yet.";
+        if (!result.scheme || !result.scheme.pdfUrl) {
+          throw new Error(
+            "No PDF has been uploaded for this Scheme of Work."
+          );
         }
+
+        this.scheme = result.scheme;
+        this.pdfUrl = result.scheme.pdfUrl;
+
       } catch (error) {
-        console.error(
-          "Error fetching scheme of work:",
-          error.response?.data || error.message
-        );
-
-        if (error.response?.status === 404) {
-          this.errorMessage =
-            "No scheme has been saved for this term, class, subject and academic session.";
-        } else if (error.response?.status === 400) {
-          this.errorMessage =
-            error.response.data.message ||
-            "Some required scheme details are missing.";
-        } else {
-          this.errorMessage =
-            error.response?.data?.message ||
-            "Unable to connect to the backend. Please check your connection and try again.";
-        }
+        console.error("LOAD SCHEME ERROR:", error);
+        this.errorMessage = error.message;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async downloadPDF() {
+      if (!this.scheme || !this.scheme.id) {
+        this.errorMessage = "No Scheme of Work is currently loaded.";
+        return;
+      }
+
+      this.downloading = true;
+
+      try {
+        const baseUrl = (
+          import.meta.env.VITE_APP_BASE_URL || ""
+        ).replace(/\/+$/, "");
+
+        const downloadUrl =
+          `${baseUrl}/api/schemes-of-work/download/${this.scheme.id}`;
+
+        const response = await fetch(downloadUrl);
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+
+          throw new Error(
+            result.message || "Unable to download PDF."
+          );
+        }
+
+        const blob = await response.blob();
+        const objectUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = objectUrl;
+
+        link.download = [
+          this.scheme.class,
+          this.scheme.subject,
+          this.scheme.term,
+          "Scheme-of-Work",
+        ].join("-") + ".pdf";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(objectUrl);
+
+      } catch (error) {
+        console.error("DOWNLOAD SCHEME ERROR:", error);
+        this.errorMessage = error.message;
+      } finally {
+        this.downloading = false;
       }
     },
 
     goBack() {
       this.$router.push("/teacher");
     },
-
-    printScheme() {
-      window.print();
-    }
-  }
+  },
 };
 </script>
 
-
-<style>
+<style scoped>
 .scheme-page {
-  min-height: 100vh;
-  padding: 30px 20px;
-  box-sizing: border-box;
-  background: #ffffe0;
-  color: #222222;
-  font-family: Arial, Helvetica, sans-serif;
+  max-width: 1150px;
+  margin: 25px auto;
+  padding: 18px;
+  color: #222;
 }
 
-.scheme-container {
-  max-width: 1400px;
-  margin: 0 auto;
+.page-header {
+  margin-bottom: 25px;
+}
+
+.page-header h2 {
+  color: #173b65;
+  margin: 18px 0 7px;
+}
+
+.page-header p {
+  color: #666;
+}
+
+.back-btn {
+  border: none;
+  background: #eef2f7;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-card {
+  background: #fff;
   padding: 25px;
-  background: #ffffff;
-  border: 1px solid #e1e1cf;
+  border: 1px solid #e1e6ed;
   border-radius: 10px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
 }
 
-.scheme-header {
+.search-card h3 {
+  margin-top: 0;
+  margin-bottom: 22px;
+  color: #173b65;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 700;
+}
+
+.form-group input,
+.form-group select {
+  height: 45px;
+  padding: 10px 12px;
+  border: 1px solid #ccd4df;
+  border-radius: 6px;
+  font-size: 15px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.load-btn {
+  margin-top: 25px;
+  padding: 13px 25px;
+  background: #173b65;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.load-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pdf-section {
+  margin-top: 30px;
+  background: white;
+  border: 1px solid #e1e6ed;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pdf-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  padding-bottom: 22px;
-  border-bottom: 2px solid #003366;
+  padding: 20px;
+  border-bottom: 1px solid #e1e6ed;
 }
 
-.school-heading {
-  flex: 1;
-  text-align: center;
+.pdf-header h3 {
+  color: #173b65;
+  margin: 0 0 7px;
 }
 
-.school-heading h1 {
-  margin: 0 0 8px;
-  color: #003366;
-  font-size: 28px;
+.pdf-header p {
+  margin: 0;
+  color: #666;
 }
 
-.school-heading p {
-  margin: 5px 0;
-  font-weight: bold;
-}
-
-.school-heading .mock-notice {
-  color: #666666;
-  font-size: 11px;
-  font-weight: normal;
-}
-
-.back-button,
-.print-button {
-  padding: 10px 15px;
+.download-btn {
+  background: #168344;
+  color: white;
   border: none;
-  border-radius: 5px;
-  background: #003366;
-  color: #ffffff;
+  border-radius: 6px;
+  padding: 12px 18px;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.back-button:hover,
-.print-button:hover {
-  background: #555555;
+.download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.scheme-details {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin: 25px 0;
+.pdf-viewer {
+  background: #e9edf2;
+  padding: 10px;
 }
 
-.detail-item {
-  padding: 15px;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  background: #fafafa;
-}
-
-.detail-item span {
+.pdf-viewer iframe {
   display: block;
-  margin-bottom: 8px;
-  color: #666666;
-  font-size: 12px;
-  font-weight: bold;
+  border: none;
+  background: white;
+  border-radius: 5px;
 }
 
-.detail-item strong {
-  color: #003366;
-  overflow-wrap: anywhere;
+.error-message {
+  margin-top: 20px;
+  padding: 14px;
+  background: #fff0f0;
+  color: #b42318;
+  border: 1px solid #f2b8b5;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
-.scheme-introduction {
-  margin: 25px 0 18px;
+.empty-state {
+  margin-top: 30px;
+  padding: 50px 20px;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
 }
 
-.scheme-introduction h2 {
-  margin-bottom: 8px;
-  color: #003366;
+.empty-icon {
+  font-size: 45px;
 }
 
-.scheme-introduction p {
-  line-height: 1.7;
+.empty-state h3 {
+  color: #173b65;
 }
 
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.scheme-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.scheme-table th,
-.scheme-table td {
-  padding: 13px 12px;
-  border: 1px solid #d6d6d6;
-  text-align: left;
-  vertical-align: top;
+.empty-state p {
+  color: #666;
+  max-width: 500px;
+  margin: auto;
   line-height: 1.6;
 }
 
-.scheme-message {
-  margin: 25px 0;
-  padding: 24px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #fafafa;
-  color: #333333;
-  text-align: center;
-  line-height: 1.7;
-}
-
-.scheme-message h3 {
-  margin-top: 0;
-  color: #003366;
-}
-
-.scheme-message p {
-  margin-bottom: 0;
-}
-
-.scheme-error {
-  border-color: #e2caca;
-  background: #fffafa;
-}
-
-.scheme-table thead th {
-  background: #003366;
-  color: #ffffff;
-}
-
-.scheme-table tbody tr:nth-child(even) {
-  background: #f7f7f7;
-}
-
-.scheme-table tbody tr:hover {
-  background: #f8f8f8;
-}
-
-.week-cell {
-  text-align: center !important;
-  font-weight: bold;
-}
-
-.scheme-footer {
-  margin-top: 25px;
-  padding-top: 15px;
-  border-top: 1px solid #dddddd;
-  color: #666666;
-  font-size: 12px;
-  text-align: center;
-}
-
-@media (max-width: 800px) {
-  .scheme-header {
-    flex-wrap: wrap;
-  }
-
-  .school-heading {
-    order: -1;
-    flex-basis: 100%;
-  }
-
-  .school-heading h1 {
-    font-size: 23px;
-  }
-
-  .scheme-details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .scheme-container {
-    padding: 15px;
-  }
-}
-
-@media (max-width: 480px) {
+@media (max-width: 650px) {
   .scheme-page {
     padding: 12px;
   }
 
-  .scheme-details {
+  .filters-grid {
     grid-template-columns: 1fr;
   }
-}
 
-@media print {
-  .scheme-page {
-    padding: 0;
-    background: #ffffff;
+  .pdf-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .scheme-container {
-    max-width: none;
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
+  .pdf-viewer iframe {
+    height: 550px;
   }
 
-  .back-button,
-  .print-button {
-    display: none;
-  }
-
-  .scheme-table {
-    font-size: 10px;
-  }
-
-  .scheme-table th,
-  .scheme-table td {
-    padding: 6px;
-  }
-
-  .scheme-table thead th {
-    background: #eeeeee !important;
-    color: #000000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  .download-btn {
+    width: 100%;
   }
 }
 </style>

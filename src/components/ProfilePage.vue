@@ -205,7 +205,7 @@
           v-if="!etrendAccount"
           class="no-account"
         >
-          ETrend account information unavailable
+          You have no account! Create ETrend account today
         </div>
 
 
@@ -282,10 +282,27 @@
 
     </div>
 
-
     <Services />
 
-    <InvestmentPage :userId="userId" />
+<!-- TrendGame9ja Investment Branding -->
+<div class="investment-brand">
+  <div class="brand-name">
+    TrendGame9ja
+  </div>
+
+  <div class="brand-tagline">
+    Play with Pawns
+    <img
+      :src="goldenPawn"
+      alt="Golden Pawn"
+      class="brand-pawn"
+    />
+  </div>
+</div>
+
+<InvestmentPage :userId="userId" />
+
+  
 
   </div>
 </template>
@@ -926,6 +943,65 @@ p {
 
 .mode-dropdown li:hover {
   background-color: #f0f0f0;
+}
+
+/* TrendGame9ja Investment Branding */
+.investment-brand {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px 10px;
+  margin: 12px auto 5px;
+  text-align: center;
+  background: linear-gradient(135deg, #001a35, #003366, #00509e);
+  border-top: 3px solid #f5c542;
+  border-bottom: 3px solid #f5c542;
+}
+
+.brand-name {
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.brand-tagline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  color: #ffda44;
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.brand-pawn {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .investment-brand {
+    padding: 11px 5px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+  }
+
+  .brand-tagline {
+    font-size: 13px;
+  }
+
+  .brand-pawn {
+    width: 23px;
+    height: 23px;
+  }
 }
 
 .selected-mode {

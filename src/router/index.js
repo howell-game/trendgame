@@ -4,9 +4,14 @@ import EtrendTransaction from "@/components/EtrendTransaction.vue";
 import InvestmentPage from "../components/InvestmentPage.vue";  // Fix: use relative path
 import Signup from "../components/Signup.vue"; 
 import QuestionBank from "../components/QuestionBank.vue";
+import ServiceBanner from "../components/ServiceBanner.vue";
+import AddLessonNotePDF from "@/components/AddLessonNotePDF.vue";
+import CBT from "../components/CBT.vue";
+import BulkSalaryPay from "../components/BulkSalaryPay.vue";
+import Proprietor from "../components/Proprietor.vue";
 import Education from "../components/Education.vue"; 
-import AddScheme from "../components/AddScheme.vue";     
-import AddLessonNotes from "../components/AddLessonNotes.vue";          // Fix: use relative path
+import AddScheme from "../components/AddScheme.vue";       
+import AddQuestions from "../components/AddQuestions.vue";       // Fix: use relative path
 import Terms from '@/components/Terms.vue';
 import EtrendSendTo from "@/components/EtrendSendTo.vue";
 import LessonNotes from "../components/LessonNotes.vue";
@@ -48,17 +53,22 @@ const routes = [
   { path: "/about", component: AboutPage },
   { path: "/advice", component: InvestmentAdvice },
   {path: "/teacher",name: "Teacher",component: Teacher},
+  {path: "/add-questions", name: "AddQuestions", component: AddQuestions,},
   { path: "/chat", component: Chat },
   {path: "/education",name: "Education",component: Education},
   { path: "/terms", component: Terms},
   { path: "/investment", component: InvestmentPage },
+  {path: "/proprietor",name: "Proprietor",component: Proprietor},
+  {path: "/add-lesson-note-pdf", name: "AddLessonNotePDF", component: AddLessonNotePDF },
   {path: "/lesson-notes",component: LessonNotes},
-  {path: "/add-lesson-notes", name: "AddLessonNotes", component: AddLessonNotes},
+  {path: "/cbt",name: "CBT",component: CBT},
+  
   { path: "/", component: Signup },
   { path: "/login", component: Login },
   { path: "/summary", component: SummaryPage },
   { path: "/timeframe", component: Timeframe },
   { path: "/bannercarousel", component: BannerCarousel },
+   { path: "/service-banner", component: ServiceBanner },
   { path: "/trend", component: TrendGraph },
   { path: "/trend/:categoryId", component: TrendPage },
   { path: '/payment-success', component: PaymentSuccess }, // Add this route
@@ -97,6 +107,7 @@ const routes = [
   { path: '/withdrawal/:userId', component: WithdrawalPage },
   {path: "/question-bank", name: "QuestionBank", component: QuestionBank},
   { path: '/receipt/:userId', component: Receipt },
+  {path: "/bulk-salary-pay",name: "BulkSalaryPay",component: BulkSalaryPay},
   { path: '/investment-details/:userId', component: InvestmentDetails },
   {path: '/profile', redirect: '/login'},
   {

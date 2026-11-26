@@ -8,6 +8,9 @@ const store = createStore({
     trendCache:{},
 
     isLoggedIn: localStorage.getItem("token") ? true : false,
+    cbtExam: null,
+    cbtAnswers: {},
+    cbtResult: null, 
     userName: localStorage.getItem("userName") || null,
     memberName: localStorage.getItem("memberName") || null,
     memberId: localStorage.getItem("memberId") || null,
@@ -29,6 +32,30 @@ const store = createStore({
 
 
   mutations: {
+    SET_CBT_EXAM(state, exam) {
+  state.cbtExam = exam;
+  state.cbtAnswers = {};
+  state.cbtResult = null;
+},
+
+SET_CBT_ANSWER(state, { questionId, selectedOption }) {
+  state.cbtAnswers = {
+    ...state.cbtAnswers,
+    [String(questionId)]: selectedOption
+  };
+},
+
+SET_CBT_RESULT(state, result) {
+  state.cbtResult = result;
+},
+
+CLEAR_CBT_EXAM(state) {
+  state.cbtExam = null;
+  state.cbtAnswers = {};
+  state.cbtResult = null;
+},
+
+
     SET_TRENDS(state,trends){
       state.trendCache = trends;
   },
@@ -342,6 +369,10 @@ async loadEtrendTransactions({ commit, getters }) {
     },
   },
   getters: {
+
+    cbtExam: state => state.cbtExam,
+    cbtAnswers: state => state.cbtAnswers,
+    cbtResult: state => state.cbtResult,
 
     etrendAccount: state => state.etrendAccount,
     etrendBalance: state => state.etrendBalance,

@@ -52,7 +52,7 @@
           <button
             class="role-card"
             :class="{ active: selectedRole === 'proprietor' }"
-            @click="selectRole('proprietor')"
+            @click="goToProprietor"
           >
             <span class="role-icon">🏫</span>
             <h3>School Proprietor</h3>
@@ -80,7 +80,7 @@
           <button
             class="role-card"
             :class="{ active: selectedRole === 'student' }"
-            @click="selectRole('student')"
+            @click="goToCBT"
           >
             <span class="role-icon">📖</span>
             <h3>Secondary School Student</h3>
@@ -409,6 +409,39 @@
     </footer>
   </div>
 </template>
+
+
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const selectedRole = ref("");
+
+function selectRole(role) {
+  selectedRole.value = role;
+}
+
+function goToCBT() {
+  router.push({ name: "CBT" });
+}
+
+function goToProprietor() {
+  router.push({ name: "Proprietor" });
+}
+
+function startPractice() {
+  if (selectedRole.value === "student") {
+    goToCBT();
+    return;
+  }
+
+  // Keep the existing JAMB practice selection on the page.
+  // Its separate functionality can remain unchanged.
+}
+</script>
+
 
 <style scoped>
 .education-page {

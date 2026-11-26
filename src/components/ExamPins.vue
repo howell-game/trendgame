@@ -1,159 +1,134 @@
+
 <template>
   <Teleport to="body">
+    <div class="exam-overlay" @click.self="closeModal">
+      <div class="exam-modal">
 
-    <div class="overlay">
-
-      <div class="modal">
-
-        <div class="modal-header">
+        <!-- HEADER -->
+        <div class="exam-header">
           <div>
-            <h2>📝 Exam PINS</h2>
+            <h2>📝 Exam PINs</h2>
             <p>WAEC and JAMB examination PINs</p>
           </div>
 
           <button
+            type="button"
             class="close-btn"
-            @click="$emit('close')"
+            @click="closeModal"
+            :disabled="buying || verifying || loadingPackages"
           >
             ×
           </button>
         </div>
 
-
         <!-- EXAM -->
         <div class="form-group">
-
           <label>Exam</label>
 
           <select
             v-model="selectedService"
             @change="loadPackages"
+            :disabled="buying || verifying || loadingPackages"
           >
-
-            <option value="">
-              Select exam
-            </option>
-
-            <option value="waec">
-              WAEC Result Checker
-            </option>
-
-            <option value="waec-registration">
-              WAEC Registration
-            </option>
-
-            <option value="jamb">
-              JAMB PIN
-            </option>
-
+            <option value="">Select exam</option>
+            <option value="waec">WAEC Result Checker</option>
+            <option value="waec-registration">WAEC Registration</option>
+            <option value="jamb">JAMB PIN</option>
           </select>
-
         </div>
 
+        <!-- LOADING PACKAGES -->
+        <div v-if="loadingPackages" class="loading-box">
+          <span class="loader"></span>
+          Loading examination packages...
+        </div>
 
         <!-- PIN TYPE -->
         <div
           v-if="packages.length"
           class="form-group"
         >
-
           <label>PIN Type</label>
 
           <select
             v-model="selectedPackage"
             @change="resetJAMBVerification"
+            :disabled="buying || verifying"
           >
-
-            <option :value="null">
-              Select PIN type
-            </option>
+            <option :value="null">Select PIN type</option>
 
             <option
               v-for="item in packages"
               :key="item.variation_code"
               :value="item"
             >
-
               {{ item.name }}
               — ₦{{ Number(item.variation_amount).toLocaleString() }}
-
             </option>
-
           </select>
-
         </div>
 
-
-        <!-- JAMB -->
+        <!-- JAMB VERIFICATION -->
         <div
           v-if="selectedService === 'jamb' && selectedPackage"
-          class="form-group"
+          class="form-group jamb-section"
         >
-
           <label>JAMB Profile ID</label>
 
           <input
             v-model="profileId"
             type="text"
             placeholder="Enter JAMB Profile ID"
+            :disabled="verifying || buying"
           />
 
           <button
+            type="button"
             class="verify-btn"
-            :disabled="verifying"
+            :disabled="verifying || buying || !profileId.trim()"
             @click="verifyJAMB"
           >
-
             {{
               verifying
                 ? "Verifying..."
                 : "Verify Profile ID"
             }}
-
           </button>
 
-          <div
-            v-if="customerName"
-            class="verified"
-          >
-            ✓ {{ customerName }}
+          <div v-if="customerName" class="verified">
+            <span>✓</span>
+            {{ customerName }}
           </div>
-
         </div>
-
 
         <!-- PHONE -->
         <div class="form-group">
-
           <label>Phone Number</label>
 
           <input
             v-model="phoneNumber"
             type="tel"
+            inputmode="numeric"
+            maxlength="11"
             placeholder="08012345678"
+            :disabled="buying"
           />
-
         </div>
-
 
         <!-- SUMMARY -->
-        <div
-          v-if="selectedPackage"
-          class="summary"
-        >
+        <div v-if="selectedPackage" class="summary">
+          <div>
+            <span>Selected PIN</span>
+            <strong>{{ selectedPackage.name }}</strong>
+          </div>
 
-          <span>Amount</span>
-
-          <strong>
-            ₦{{
-              Number(
-                selectedPackage.variation_amount
-              ).toLocaleString()
-            }}
-          </strong>
-
+          <div class="summary-amount">
+            <span>Amount</span>
+            <strong>
+              ₦{{ Number(selectedPackage.variation_amount).toLocaleString() }}
+            </strong>
+          </div>
         </div>
-
 
         <!-- MESSAGE -->
         <div
@@ -163,61 +138,45 @@
             isError ? 'error' : 'success'
           ]"
         >
-
           {{ message }}
-
         </div>
 
-
         <!-- PURCHASE RESULT -->
-        <div
-          v-if="purchased"
-          class="pin-result"
-        >
-
+        <div v-if="purchased" class="pin-result">
           <h3>🎉 PIN Purchased</h3>
 
-          <div v-if="serialNumber">
+          <div v-if="serialNumber" class="result-item">
             <strong>Serial Number</strong>
             <p>{{ serialNumber }}</p>
           </div>
 
-          <div v-if="pin">
+          <div v-if="pin" class="result-item">
             <strong>PIN</strong>
-            <p class="pin-value">
-              {{ pin }}
-            </p>
+            <p class="pin-value">{{ pin }}</p>
           </div>
 
-          <div v-if="token">
+          <div v-if="token" class="result-item">
             <strong>Token</strong>
-            <p class="pin-value">
-              {{ token }}
-            </p>
+            <p class="pin-value">{{ token }}</p>
           </div>
-
         </div>
-
 
         <!-- BUY -->
         <button
+          type="button"
           class="buy-btn"
-          :disabled="!canBuy || buying"
+          :disabled="!canBuy || buying || verifying"
           @click="buyPIN"
         >
-
           {{
             buying
               ? "Processing..."
               : "Buy PIN"
           }}
-
         </button>
-
 
         <!-- HISTORY -->
         <div class="history">
-
           <h3>Recent Purchases</h3>
 
           <div
@@ -232,17 +191,9 @@
             :key="transaction.id"
             class="history-item"
           >
-
-            <div>
-
-              <strong>
-                {{ transaction.examType }}
-              </strong>
-
-              <small>
-                {{ transaction.packageName }}
-              </small>
-
+            <div class="history-info">
+              <strong>{{ transaction.examType }}</strong>
+              <small>{{ transaction.packageName }}</small>
             </div>
 
             <span
@@ -254,31 +205,22 @@
             >
               {{ transaction.status }}
             </span>
-
           </div>
-
         </div>
 
       </div>
-
     </div>
-
   </Teleport>
 </template>
 
-
 <script>
-
 import axios from "axios";
 
 export default {
-
   name: "ExamPins",
 
   data() {
-
     return {
-
       selectedService: "",
       packages: [],
       selectedPackage: null,
@@ -288,6 +230,7 @@ export default {
 
       phoneNumber: "",
 
+      loadingPackages: false,
       verifying: false,
       buying: false,
 
@@ -301,77 +244,102 @@ export default {
       token: "",
 
       transactions: []
-
     };
-
   },
 
-
   computed: {
-
     canBuy() {
-
       if (
         !this.selectedPackage ||
-        !this.phoneNumber
+        !this.phoneNumber.trim()
       ) {
         return false;
       }
 
-      if (
-        this.selectedService === "jamb"
-      ) {
-
+      if (this.selectedService === "jamb") {
         return (
-          this.profileId &&
+          this.profileId.trim() &&
           this.customerName
         );
-
       }
 
       return true;
-
     }
-
   },
-
 
   mounted() {
-
     this.loadHistory();
 
+    window.addEventListener("keydown", this.handleEscape);
   },
 
+  beforeUnmount() {
+    window.removeEventListener("keydown", this.handleEscape);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener("keydown", this.handleEscape);
+  },
 
   methods: {
+    // =========================================
+    // MODAL CLOSURE
+    // =========================================
+
+    closeModal() {
+      if (
+        this.buying ||
+        this.verifying ||
+        this.loadingPackages
+      ) {
+        return;
+      }
+
+      this.$emit("close");
+    },
+
+    handleEscape(event) {
+      if (event.key === "Escape") {
+        this.closeModal();
+      }
+    },
+
+    // =========================================
+    // LOAD EXAM PACKAGES
+    // =========================================
 
     async loadPackages() {
-
       this.packages = [];
       this.selectedPackage = null;
 
       this.profileId = "";
       this.customerName = "";
 
+      this.phoneNumber = "";
+
       this.message = "";
+      this.isError = false;
       this.purchased = false;
+
+      this.serialNumber = "";
+      this.pin = "";
+      this.token = "";
 
       if (!this.selectedService) {
         return;
       }
 
-      try {
+      this.loadingPackages = true;
 
-        const response =
-          await axios.get(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/packages/${this.selectedService}`
-          );
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/packages/${this.selectedService}`
+        );
 
         this.packages =
           response.data?.packages || [];
 
       } catch (error) {
-
         console.error(
           "Failed to load exam packages:",
           error
@@ -383,25 +351,36 @@ export default {
 
         this.isError = true;
 
+      } finally {
+        this.loadingPackages = false;
       }
-
     },
 
+    // =========================================
+    // RESET JAMB VERIFICATION
+    // =========================================
 
     resetJAMBVerification() {
-
       this.customerName = "";
       this.message = "";
+      this.isError = false;
       this.purchased = false;
 
+      this.serialNumber = "";
+      this.pin = "";
+      this.token = "";
     },
 
+    // =========================================
+    // VERIFY JAMB
+    // =========================================
 
     async verifyJAMB() {
-
       if (
-        !this.profileId ||
-        !this.selectedPackage
+        !this.profileId.trim() ||
+        !this.selectedPackage ||
+        this.verifying ||
+        this.buying
       ) {
         return;
       }
@@ -409,21 +388,18 @@ export default {
       this.verifying = true;
       this.message = "";
       this.isError = false;
+      this.customerName = "";
 
       try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/verify-jamb`,
+          {
+            profileId: this.profileId.trim(),
 
-        const response =
-          await axios.post(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/verify-jamb`,
-            {
-              profileId:
-                this.profileId,
-
-              variationCode:
-                this.selectedPackage
-                  .variation_code
-            }
-          );
+            variationCode:
+              this.selectedPackage.variation_code
+          }
+        );
 
         this.customerName =
           response.data?.customerName || "";
@@ -434,7 +410,6 @@ export default {
         this.isError = false;
 
       } catch (error) {
-
         this.customerName = "";
 
         this.message =
@@ -444,17 +419,28 @@ export default {
         this.isError = true;
 
       } finally {
-
         this.verifying = false;
-
       }
-
     },
 
+    // =========================================
+    // BUY EXAM PIN
+    // =========================================
 
     async buyPIN() {
+      if (!this.canBuy || this.buying) {
+        return;
+      }
 
-      if (!this.canBuy) {
+      const phone = String(this.phoneNumber || "")
+        .replace(/\s+/g, "")
+        .trim();
+
+      if (!/^0[789][01]\d{8}$/.test(phone)) {
+        this.message =
+          "Please enter a valid Nigerian phone number.";
+
+        this.isError = true;
         return;
       }
 
@@ -464,49 +450,46 @@ export default {
       this.purchased = false;
 
       try {
-
         const userId =
           this.$store.getters.userId;
 
-        const response =
-          await axios.post(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/buy`,
-            {
-              userId,
-
-              examType:
-                this.selectedService === "jamb"
-                  ? "JAMB"
-                  : this.selectedService === "waec-registration"
-                    ? "WAEC Registration"
-                    : "WAEC Result Checker",
-
-              serviceID:
-                this.selectedService,
-
-              variationCode:
-                this.selectedPackage
-                  .variation_code,
-
-              packageName:
-                this.selectedPackage.name,
-
-              phoneNumber:
-                this.phoneNumber,
-
-              profileId:
-                this.profileId || null,
-
-              amount:
-                Number(
-                  this.selectedPackage
-                    .variation_amount
-                ),
-
-              quantity: 1
-
-            }
+        if (!userId) {
+          throw new Error(
+            "Your account could not be identified."
           );
+        }
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/buy`,
+          {
+            userId,
+
+            examType:
+              this.selectedService === "jamb"
+                ? "JAMB"
+                : this.selectedService === "waec-registration"
+                  ? "WAEC Registration"
+                  : "WAEC Result Checker",
+
+            serviceID: this.selectedService,
+
+            variationCode:
+              this.selectedPackage.variation_code,
+
+            packageName:
+              this.selectedPackage.name,
+
+            phoneNumber: phone,
+
+            profileId: this.profileId || null,
+
+            amount: Number(
+              this.selectedPackage.variation_amount
+            ),
+
+            quantity: 1
+          }
+        );
 
         this.serialNumber =
           response.data?.serialNumber || "";
@@ -517,12 +500,11 @@ export default {
         this.token =
           response.data?.token || "";
 
-        this.purchased =
-          !!(
-            this.serialNumber ||
-            this.pin ||
-            this.token
-          );
+        this.purchased = !!(
+          this.serialNumber ||
+          this.pin ||
+          this.token
+        );
 
         this.message =
           response.data?.message ||
@@ -533,7 +515,6 @@ export default {
         await this.loadHistory();
 
       } catch (error) {
-
         console.error(
           "Exam PIN purchase error:",
           error
@@ -541,23 +522,22 @@ export default {
 
         this.message =
           error.response?.data?.message ||
+          error.message ||
           "Exam PIN purchase failed.";
 
         this.isError = true;
 
       } finally {
-
         this.buying = false;
-
       }
-
     },
 
+    // =========================================
+    // PURCHASE HISTORY
+    // =========================================
 
     async loadHistory() {
-
       try {
-
         const userId =
           this.$store.getters.userId;
 
@@ -565,380 +545,556 @@ export default {
           return;
         }
 
-        const response =
-          await axios.get(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/transactions/${userId}`
-          );
+        const response = await axios.get(
+          `${import.meta.env.VITE_APP_BASE_URL}/api/etrend-education/transactions/${userId}`
+        );
 
         this.transactions =
           response.data?.transactions || [];
 
       } catch (error) {
-
         console.error(
           "Failed to load exam PIN history:",
           error
         );
-
       }
-
     }
-
   }
-
 };
-
 </script>
-
 
 <style scoped>
 
-.overlay {
+/* =========================================
+   MODAL OVERLAY
+========================================= */
 
+.exam-overlay {
   position: fixed;
-
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  width: 100vw;
-  height: 100vh;
-
-  background: rgba(0, 0, 0, 0.7);
-
-  display: flex;
-
-  justify-content: center;
-  align-items: center;
-
-  padding: 20px;
-
-  box-sizing: border-box;
+  inset: 0;
 
   z-index: 999999;
 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 15px;
+
+  box-sizing: border-box;
+
+  background: rgba(0, 25, 50, 0.72);
+  backdrop-filter: blur(5px);
+
+  overflow-y: auto;
 }
 
-.modal {
+/* =========================================
+   MODAL
+========================================= */
 
+.exam-modal {
   position: relative;
 
   display: block;
 
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
 
-  max-height: 90vh;
-
+  max-height: 94vh;
   overflow-y: auto;
-
-  background: #ffffff !important;
-
-  color: #222222 !important;
-
-  border-radius: 14px;
 
   padding: 22px;
 
   box-sizing: border-box;
 
-  z-index: 1000000;
+  background: #fff9d9;
+  color: #111;
 
-  box-shadow:
-    0 20px 60px
-    rgba(0, 0, 0, 0.4);
+  border: 1px solid #e8dca4;
+  border-radius: 18px;
 
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
 }
 
-.modal-header {
+/* =========================================
+   HEADER
+========================================= */
 
+.exam-header {
   display: flex;
-
   justify-content: space-between;
-
   align-items: flex-start;
 
-  margin-bottom: 20px;
+  gap: 15px;
 
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+
+  border-bottom: 1px solid #e8dca4;
 }
 
-.modal-header h2 {
-
+.exam-header h2 {
   margin: 0;
 
-  color: #111111 !important;
+  color: #003366;
 
+  font-size: 22px;
+  font-weight: 800;
 }
 
-.modal-header p {
-
+.exam-header p {
   margin: 5px 0 0;
 
-  color: #666666 !important;
-
+  color: #555;
+  font-size: 12px;
 }
 
 .close-btn {
+  width: 36px;
+  height: 36px;
 
-  border: none;
+  flex-shrink: 0;
 
-  background: transparent;
+  border: 1px solid #d8cda0;
+  border-radius: 10px;
 
-  color: #222222 !important;
+  background: #fffef8;
+  color: #003366;
 
-  font-size: 30px;
-
+  font-size: 25px;
   line-height: 1;
 
   cursor: pointer;
 
-  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  transition: 0.2s ease;
 }
 
+.close-btn:hover {
+  background: #003366;
+  color: white;
+  border-color: #003366;
+}
+
+.close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   FORM
+========================================= */
+
 .form-group {
-
-  margin-bottom: 16px;
-
+  margin-bottom: 18px;
 }
 
 .form-group label {
-
   display: block;
 
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 
-  font-weight: 600;
+  color: #003366;
 
-  color: #222222 !important;
-
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .form-group input,
 .form-group select {
-
   display: block;
 
   width: 100%;
-
-  padding: 12px;
-
-  border: 1px solid #cccccc;
-
-  border-radius: 8px;
-
-  background: #ffffff !important;
-
-  color: #222222 !important;
-
   box-sizing: border-box;
 
-  font-size: 15px;
+  padding: 13px;
 
+  border: 1px solid #d8cda0;
+  border-radius: 9px;
+
+  background: #fffef8;
+  color: #111;
+
+  outline: none;
+
+  font-size: 14px;
+
+  transition: border-color 0.2s ease;
 }
 
-.verify-btn,
-.buy-btn {
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #003366;
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
+}
 
-  width: 100%;
+.form-group input:disabled,
+.form-group select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 
-  border: none;
+/* =========================================
+   LOADING
+========================================= */
 
-  padding: 12px;
+.loading-box {
+  padding: 17px;
 
-  border-radius: 8px;
+  margin-bottom: 17px;
 
-  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid #e8dca4;
 
-  margin-top: 8px;
+  background: #fffef8;
+  color: #003366;
 
-  font-size: 15px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+}
 
+.loader {
+  display: inline-block;
+
+  width: 15px;
+  height: 15px;
+
+  margin-right: 7px;
+  vertical-align: middle;
+
+  border: 2px solid #c9d8e8;
+  border-top-color: #168447;
+
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================
+   JAMB VERIFICATION
+========================================= */
+
+.jamb-section {
+  padding: 13px;
+
+  border: 1px solid #e8dca4;
+  border-radius: 11px;
+
+  background: #fffef8;
 }
 
 .verify-btn {
+  width: 100%;
 
-  background: #222222;
+  padding: 12px;
 
-  color: #ffffff;
+  margin-top: 10px;
 
+  border: 1px solid #003366;
+  border-radius: 9px;
+
+  background: #003366;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
 }
 
-.buy-btn {
-
-  background: #b00020;
-
-  color: #ffffff;
-
-  font-weight: bold;
-
-  margin-top: 15px;
-
+.verify-btn:hover {
+  background: #004785;
 }
 
-button:disabled {
-
+.verify-btn:disabled {
   opacity: 0.5;
-
   cursor: not-allowed;
-
-}
-
-.summary {
-
-  display: flex;
-
-  justify-content: space-between;
-
-  padding: 14px;
-
-  background: #f5f5f5;
-
-  border-radius: 8px;
-
-  color: #222222;
-
-}
-
-.message {
-
-  padding: 10px;
-
-  border-radius: 8px;
-
-  margin-top: 12px;
-
-}
-
-.success {
-
-  background: #e8f7ed;
-
-  color: #176b32;
-
-}
-
-.error {
-
-  background: #fdecec;
-
-  color: #a00000;
-
 }
 
 .verified {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 
-  margin-top: 8px;
+  margin-top: 10px;
+  padding: 10px;
 
-  color: #167334;
+  border-radius: 8px;
+  border: 1px solid #b6d8bd;
 
-  font-weight: 600;
+  background: #edf8ed;
+  color: #176b35;
 
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.pin-result {
+/* =========================================
+   SUMMARY
+========================================= */
 
-  margin-top: 15px;
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-  padding: 15px;
+  gap: 12px;
 
-  background: #eef7ff;
+  padding: 14px;
 
+  border: 1px solid #b6d8bd;
   border-radius: 10px;
 
-  color: #222222;
+  background: #edf8ed;
+  color: #003366;
+}
 
+.summary span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #555;
+  font-size: 11px;
+}
+
+.summary strong {
+  font-size: 13px;
+}
+
+.summary-amount {
+  text-align: right;
+}
+
+/* =========================================
+   MESSAGES
+========================================= */
+
+.message {
+  padding: 12px;
+
+  margin-top: 13px;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message.success {
+  background: #edf8ed;
+  border: 1px solid #b6d8bd;
+
+  color: #176b35;
+}
+
+.message.error {
+  background: #fff0ed;
+  border: 1px solid #e4aaa0;
+
+  color: #b42318;
+}
+
+/* =========================================
+   PURCHASE RESULT
+========================================= */
+
+.pin-result {
+  margin-top: 15px;
+  padding: 15px;
+
+  border: 1px solid #b6d8bd;
+  border-radius: 11px;
+
+  background: #edf8ed;
+  color: #111;
+}
+
+.pin-result h3 {
+  margin: 0 0 14px;
+
+  color: #168447;
+  font-size: 16px;
+}
+
+.result-item {
+  margin-top: 12px;
+  padding-top: 10px;
+
+  border-top: 1px solid #c9e2ce;
+}
+
+.result-item strong {
+  color: #003366;
+  font-size: 12px;
+}
+
+.result-item p {
+  margin: 6px 0 0;
+
+  color: #111;
+  font-size: 14px;
+
+  word-break: break-all;
 }
 
 .pin-value {
-
-  font-size: 18px;
-
-  font-weight: bold;
-
-  word-break: break-all;
-
+  font-size: 19px !important;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
+/* =========================================
+   BUY BUTTON
+========================================= */
+
+.buy-btn {
+  width: 100%;
+
+  padding: 14px;
+
+  margin-top: 15px;
+
+  border: 1px solid #168447;
+  border-radius: 10px;
+
+  background: #168447;
+  color: white;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.buy-btn:hover {
+  background: #106b38;
+  border-color: #106b38;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 6px 18px rgba(22, 132, 71, 0.22);
+}
+
+.buy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================
+   PURCHASE HISTORY
+========================================= */
+
 .history {
-
   margin-top: 25px;
+  padding-top: 17px;
 
+  border-top: 1px solid #e8dca4;
 }
 
 .history h3 {
+  margin: 0 0 12px;
 
-  color: #222222;
-
+  color: #003366;
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .history-item {
-
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
 
   gap: 10px;
 
   padding: 12px 0;
 
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #e8dca4;
+}
 
+.history-info {
+  min-width: 0;
+}
+
+.history-info strong {
+  display: block;
+
+  color: #003366;
+  font-size: 12px;
 }
 
 .history-item small {
-
   display: block;
 
-  color: #777777;
+  margin-top: 5px;
 
-  margin-top: 4px;
-
+  color: #666;
+  font-size: 11px;
 }
 
 .status-success {
+  color: #168447;
+  font-size: 11px;
+  font-weight: 800;
 
-  color: green;
-
-  font-size: 12px;
-
+  white-space: nowrap;
 }
 
 .status-pending {
+  color: #a66a00;
+  font-size: 11px;
+  font-weight: 800;
 
-  color: #b06a00;
-
-  font-size: 12px;
-
+  white-space: nowrap;
 }
 
 .empty {
+  padding: 13px;
 
-  color: #777777;
+  border-radius: 9px;
 
-  font-size: 14px;
+  background: #fffef8;
+  color: #777;
 
+  font-size: 12px;
+  text-align: center;
 }
 
-@media (max-width: 600px) {
+/* =========================================
+   MOBILE
+========================================= */
 
-  .overlay {
-
+@media (max-width: 500px) {
+  .exam-overlay {
     padding: 12px;
-
   }
 
-  .modal {
-
-    max-height: 94vh;
-
-    padding: 18px;
-
+  .exam-modal {
+    padding: 17px;
+    border-radius: 15px;
   }
 
+  .exam-header h2 {
+    font-size: 20px;
+  }
 }
 
 </style>

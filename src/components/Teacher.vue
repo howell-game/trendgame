@@ -2,6 +2,7 @@
 <template>
   <div class="teacher-page">
     <div class="teacher-container">
+
       <!-- Header -->
       <header class="teacher-header">
         <button class="back-button" type="button" @click="goBack">
@@ -16,8 +17,7 @@
       <section class="welcome-section">
         <h2>Welcome, Teacher</h2>
         <p>
-          Choose a resource below to get started. Select the term,
-          class, and subject you want to work with.
+          Choose a resource below to get started.
         </p>
       </section>
 
@@ -28,100 +28,25 @@
           :key="resource.id"
           class="resource-card"
           type="button"
-          @click="openModal(resource)"
+          @click="openResource(resource)"
         >
           <span class="resource-icon">{{ resource.icon }}</span>
-          <span class="resource-title">{{ resource.name }}</span>
+
+          <span class="resource-title">
+            {{ resource.name }}
+          </span>
+
           <span class="resource-description">
             {{ resource.description }}
           </span>
-          <span class="resource-action">Open resource →</span>
+
+          <span class="resource-action">
+            Open resource →
+          </span>
         </button>
       </section>
+
     </div>
-
-    <!-- Resource selection modal -->
-    <Teleport to="body">
-      <div
-        v-if="showModal && selectedResource"
-        class="teacher-modal-overlay"
-        @click.self="closeModal"
-      >
-        <section
-          class="teacher-modal-box"
-          role="dialog"
-          aria-modal="true"
-          :aria-label="selectedResource.name"
-        >
-          <button
-            class="teacher-modal-close"
-            type="button"
-            aria-label="Close"
-            @click="closeModal"
-          >
-            ×
-          </button>
-
-          <div class="modal-heading">
-            <span class="modal-icon">{{ selectedResource.icon }}</span>
-            <h2>{{ selectedResource.name }}</h2>
-            <p>Select the details for this resource.</p>
-          </div>
-
-          <form @submit.prevent="openResource">
-            <div class="form-field">
-              <label for="teacher-term">Term</label>
-              <select id="teacher-term" v-model="filters.term" required>
-                <option value="" disabled>Select term</option>
-                <option value="First Term">First Term</option>
-                <option value="Second Term">Second Term</option>
-                <option value="Third Term">Third Term</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="teacher-class">Class</label>
-              <select id="teacher-class" v-model="filters.class" required>
-                <option value="" disabled>Select class</option>
-                <option
-                  v-for="item in classes"
-                  :key="item"
-                  :value="item"
-                >
-                  {{ item }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="teacher-subject">Subject</label>
-              <select id="teacher-subject" v-model="filters.subject" required>
-                <option value="" disabled>Select subject</option>
-                <option
-                  v-for="item in subjects"
-                  :key="item"
-                  :value="item"
-                >
-                  {{ item }}
-                </option>
-              </select>
-            </div>
-
-            <button class="modal-open-button" type="submit">
-              Open
-            </button>
-
-            <button
-              class="modal-cancel-button"
-              type="button"
-              @click="closeModal"
-            >
-              Cancel
-            </button>
-          </form>
-        </section>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -131,74 +56,35 @@ export default {
 
   data() {
     return {
-      showModal: false,
-      selectedResource: null,
-
-      filters: {
-        term: "",
-        class: "",
-        subject: ""
-      },
-
       resources: [
         {
           id: 1,
           name: "Scheme of Work",
           icon: "📘",
-          description: "Prepare and manage schemes of work."
+          description: "Prepare and manage schemes of work.",
+          path: "/scheme-of-work"
         },
         {
           id: 2,
           name: "Lesson Notes",
           icon: "📝",
-          description: "Prepare and organize lesson notes."
+          description: "Prepare and organize lesson notes.",
+          path: "/lesson-notes"
         },
         {
           id: 3,
           name: "Question Banks",
           icon: "❓",
-          description: "Organize questions for tests and examinations."
+          description: "Organize questions for tests and examinations.",
+          path: "/question-bank"
         },
         {
           id: 4,
           name: "Assignments",
           icon: "📚",
-          description: "Prepare and manage class assignments."
+          description: "Prepare and manage class assignments.",
+          path: null
         }
-      ],
-
-      classes: [
-        "JSS 1",
-        "JSS 2",
-        "JSS 3",
-        "SS 1",
-        "SS 2",
-        "SS 3"
-      ],
-
-      subjects: [
-        "Mathematics",
-        "English Language",
-        "Biology",
-        "Chemistry",
-        "Physics",
-        "Agricultural Science",
-        "Basic Science",
-        "Basic Technology",
-        "Computer Studies",
-        "Economics",
-        "Government",
-        "Geography",
-        "Civic Education",
-        "Social Studies",
-        "Business Studies",
-        "Further Mathematics",
-        "Literature in English",
-        "Christian Religious Studies",
-        "Islamic Religious Studies",
-        "Home Economics",
-        "Physical and Health Education",
-        "Other"
       ]
     };
   },
@@ -208,85 +94,25 @@ export default {
       this.$router.push("/education");
     },
 
-    openModal(resource) {
-      this.selectedResource = resource;
-
-      this.filters = {
-        term: "",
-        class: "",
-        subject: ""
-      };
-
-      this.showModal = true;
-    },
-
-    closeModal() {
-      this.showModal = false;
-      this.selectedResource = null;
-    },
-
-    
-openResource() {
-  if (this.selectedResource.name === "Scheme of Work") {
-    this.$router.push({
-      path: "/scheme-of-work",
-      query: {
-        term: this.filters.term,
-        class: this.filters.class,
-        subject: this.filters.subject,
-        academicSession: "2026/2027"
+    openResource(resource) {
+      if (!resource.path) {
+        console.log(
+          "This resource has not been connected yet:",
+          resource.name
+        );
+        return;
       }
-    });
 
-    this.closeModal();
-    return;
-  }
-
-  if (this.selectedResource.name === "Lesson Notes") {
-    this.$router.push({
-      path: "/lesson-notes",
-      query: {
-        term: this.filters.term,
-        class: this.filters.class,
-        subject: this.filters.subject,
-        academicSession: "2026/2027"
-      }
-    });
-
-    this.closeModal();
-    return;
-  }
-
-  if (this.selectedResource.name === "Question Banks") {
-    this.$router.push({
-      path: "/question-bank",
-      query: {
-        term: this.filters.term,
-        class: this.filters.class,
-        subject: this.filters.subject,
-        academicSession: "2026/2027"
-      }
-    });
-
-    this.closeModal();
-    return;
-  }
-
-  // Other resources will be connected later.
-  console.log("Selected education resource:", {
-    resource: this.selectedResource.name,
-    term: this.filters.term,
-    class: this.filters.class,
-    subject: this.filters.subject
-  });
-
-  this.closeModal();
-}
-
+      this.$router.push({
+        path: resource.path,
+        query: {
+          academicSession: "2026/2027"
+        }
+      });
+    }
   }
 };
 </script>
-
 
 <style>
 .teacher-page {
@@ -392,6 +218,11 @@ openResource() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
 }
 
+.resource-card:focus-visible {
+  outline: 3px solid #00509e;
+  outline-offset: 3px;
+}
+
 .resource-icon {
   margin-bottom: 12px;
   font-size: 38px;
@@ -418,145 +249,6 @@ openResource() {
   font-weight: bold;
 }
 
-/* Modal overlay */
-.teacher-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow-y: auto;
-  padding: 20px;
-  box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.75);
-}
-
-/* Modal box */
-.teacher-modal-box {
-  position: relative;
-  display: block;
-  flex: 0 1 440px;
-  width: 100%;
-  max-width: 440px;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-  margin: auto;
-  padding: 30px;
-  box-sizing: border-box;
-  border: 2px solid #003366;
-  border-radius: 12px;
-  background: #ffffe0;
-  color: #111111;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-}
-
-.modal-heading {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.modal-icon {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 35px;
-}
-
-.modal-heading h2 {
-  margin: 0 25px 8px;
-  color: #003366;
-  font-size: 24px;
-}
-
-.modal-heading p {
-  margin: 0;
-  color: #444444;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.teacher-modal-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: #111111;
-  font-size: 30px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.teacher-modal-close:hover {
-  background: #f5f5f5;
-}
-
-.form-field {
-  margin-bottom: 18px;
-}
-
-.form-field label {
-  display: block;
-  margin-bottom: 7px;
-  color: #111111;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.form-field select {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1px solid #999999;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #111111;
-  font-size: 15px;
-}
-
-.form-field select:focus {
-  outline: 2px solid #a6b8ca;
-  outline-offset: 1px;
-}
-
-.modal-open-button,
-.modal-cancel-button {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.modal-open-button {
-  margin-top: 25px;
-  background: #003366;
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.modal-open-button:hover {
-  background: #00509e;
-}
-
-.modal-cancel-button {
-  margin-top: 10px;
-  background: #e5e5c5;
-  color: #111111;
-}
-
-.modal-cancel-button:hover {
-  background: #d6d6b4;
-}
-
 @media (max-width: 600px) {
   .teacher-page {
     padding: 20px 14px 35px;
@@ -573,15 +265,6 @@ openResource() {
 
   .resource-card {
     min-height: 190px;
-  }
-
-  .teacher-modal-overlay {
-    padding: 12px;
-  }
-
-  .teacher-modal-box {
-    padding: 25px 20px;
-    max-height: calc(100vh - 24px);
   }
 }
 </style>

@@ -1,748 +1,437 @@
+
 <template>
-  <div class="withdrawal-container" v-if="isLoggedIn">
+  <div v-if="isLoggedIn" class="withdrawal-container">
+    <div class="top-row">
+      <h2>Withdraw Pawns</h2>
 
-    <h2>Withdraw Funds</h2>
-
-    <!-- Transaction History -->
-    <div class="transaction-button-container">
-      <button class="button transaction" @click="navigateToTransaction">
+      <button class="history-btn" @click="navigateToTransaction">
         Transaction History
       </button>
     </div>
 
-    <!-- Amount -->
+    
+<div class="balance-box">
+  <span>Available Pawn Balance</span>
+
+  <strong class="pawn-balance">
+    <img
+      :src="goldenPawn"
+      class="pawn-icon"
+      alt="Golden Pawn"
+    />
+    <span>₦{{ formatMoney(balance) }}</span>
+  </strong>
+</div>
+
+
     <div class="form-group">
-      <label>Amount</label>
+      <label for="withdrawal-amount">Withdrawal Amount (₦)</label>
+
       <input
-        type="number"
+        id="withdrawal-amount"
         v-model="amount"
+        type="number"
         min="1000"
-        placeholder="Enter Amount"
+        step="0.01"
+        placeholder="Enter amount"
+        :disabled="withdrawing"
       />
-      <small v-if="amount && amount < 1000" class="error">
-        Minimum withdrawal is ₦1000
+
+      <small v-if="amount && Number(amount) < 1000" class="error">
+        Minimum withdrawal is ₦1,000.
+      </small>
+
+      <small v-else class="hint">
+        Your Pawns will be deducted before the transfer is processed.
       </small>
     </div>
-
-    <!-- Bank -->
-    <div class="form-group autocomplete">
-
-      <label>Bank</label>
-
-      <input
-        type="text"
-        v-model="bankSearch"
-        placeholder="Type Bank Name..."
-        @input="filterBanks"
-        @focus="showSuggestions=true"
-      />
-
-      <div
-        class="suggestions"
-        v-if="showSuggestions && filteredBanks.length"
-      >
-
-        <div
-          class="suggestion"
-          v-for="bank in filteredBanks"
-          :key="bank.code"
-          @click="selectBank(bank)"
-        >
-
-          {{ bank.name }}
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <!-- Account Number -->
-
-    <div class="form-group">
-
-      <label>Account Number</label>
-
-      <input
-        maxlength="10"
-        v-model="accountNumber"
-        placeholder="0123456789"
-        @input="accountChanged"
-      />
-
-    </div>
-
-    <!-- Resolve -->
-
-    <button
-      class="resolve-btn"
-      @click="resolveAccount"
-      :disabled="!canResolve"
-    >
-
-      {{ resolving ? "Resolving..." : "Resolve Account" }}
-
-    </button>
-
-    <!-- Account Name -->
-
-    <div
-      class="resolved-box"
-      v-if="accountName"
-    >
-
-      <div class="success">
-
-        ✓ Verified Account
-
-      </div>
-
-      <strong>
-
-        {{ accountName }}
-
-      </strong>
-
-    </div>
-
-    <!-- Withdraw -->
 
     <button
       class="withdraw-btn"
       @click="withdraw"
       :disabled="!canWithdraw"
     >
-
-      {{ withdrawing ? "Processing..." : "Withdraw" }}
-
+      {{ withdrawing ? "Submitting..." : "Withdraw Pawns" }}
     </button>
 
-    <!-- Message -->
+    <div v-if="reference" class="status-box">
+      <p><strong>Reference:</strong></p>
+      <p class="reference">{{ reference }}</p>
 
-    <div
-      class="message"
-      v-if="message"
-      :class="{error:isError}"
-    >
+      <p>
+        <strong>Status:</strong>
+        <span :class="statusClass">{{ status }}</span>
+      </p>
 
-      {{ message }}
-
+      <button
+        class="check-btn"
+        @click="checkStatus"
+        :disabled="checking"
+      >
+        {{ checking ? "Checking..." : "Check Withdrawal Status" }}
+      </button>
     </div>
 
+    <div v-if="message" class="message" :class="{ error: isError }">
+      {{ message }}
+    </div>
   </div>
 
-  <div v-else>
-
-    Please login first.
-
+  <div v-else class="login-message">
+    Please log in to withdraw Pawns.
   </div>
-
 </template>
+
 
 <script>
 import axios from "axios";
 import { mapGetters } from "vuex";
+import goldenPawn from "@/assets/golden-pawn.png";
 
 export default {
-
-data(){
-
-return{
-
-amount:"",
-
-banks:[],
-
-filteredBanks:[],
-
-bankSearch:"",
-
-selectedBank:null,
-
-showSuggestions:false,
-
-accountNumber:"",
-
-accountName:"",
-
-resolving:false,
-
-withdrawing:false,
-
-message:"",
-
-isError:false,
-
-};
-
-},
-
-computed:{
-
-...mapGetters([
-"isLoggedIn",
-"userId"
-]),
-
-canResolve(){
-
-return(
-
-this.selectedBank &&
-
-this.accountNumber.length===10 &&
-
-!this.resolving
-
-);
-
-},
-
-canWithdraw(){
-
-return(
-
-this.amount>=500 &&
-
-this.accountName &&
-
-!this.withdrawing
-
-);
-
-}
-
-},
-
-mounted(){
-
-this.loadBanks();
-
-},
-
-methods:{
-
-async loadBanks(){
-
-try{
-
-const res=await axios.get(
-
-`${import.meta.env.VITE_APP_BASE_URL}/api/transactions/banks`
-
-);
-
-this.banks=res.data;
-
-this.filteredBanks=this.banks;
-
-}
-
-catch(err){
-
-this.message="Unable to load banks.";
-
-this.isError=true;
-
-}
-
-},
-
-filterBanks(){
-
-this.accountName="";
-
-this.selectedBank=null;
-
-const keyword=this.bankSearch.toLowerCase();
-
-this.filteredBanks=this.banks.filter(
-
-bank=>
-
-bank.name.toLowerCase().includes(keyword)
-
-);
-
-},
-
-selectBank(bank){
-
-this.selectedBank=bank;
-
-this.bankSearch=bank.name;
-
-this.showSuggestions=false;
-
-this.accountName="";
-
-},
-
-accountChanged(){
-
-this.accountName="";
-
-},
-
-async resolveAccount(){
-
-this.resolving=true;
-
-this.message="";
-
-this.isError=false;
-
-try{
-
-const res=await axios.post(
-
-`${import.meta.env.VITE_APP_BASE_URL}/api/transactions/resolve-account`,
-
-{
-
-accountNumber:this.accountNumber,
-
-bankCode:this.selectedBank.code,
-
-}
-
-);
-
-this.accountName=res.data.accountName;
-
-}
-
-catch(err){
-
-this.accountName="";
-
-this.message=
-
-err.response?.data?.error||
-
-"Unable to resolve account.";
-
-this.isError=true;
-
-}
-
-finally{
-
-this.resolving=false;
-
-}
-
-},
-
-async withdraw(){
-
-this.withdrawing=true;
-
-this.message="";
-
-this.isError=false;
-
-try{
-
-const res=await axios.post(
-
-`${import.meta.env.VITE_APP_BASE_URL}/api/transactions/withdraw`,
-
-{
-
-userId:this.userId,
-
-amount:this.amount,
-
-accountNumber:this.accountNumber,
-
-bankCode:this.selectedBank.code,
-
-}
-
-);
-
-this.message=
-
-res.data.message||
-
-"Withdrawal initiated successfully.";
-
-this.resetForm();
-
-}
-
-catch(err){
-
-this.message=
-
-err.response?.data?.error||
-
-"Withdrawal failed.";
-
-this.isError=true;
-
-}
-
-finally{
-
-this.withdrawing=false;
-
-}
-
-},
-
-resetForm(){
-
-this.amount="";
-
-this.bankSearch="";
-
-this.accountNumber="";
-
-this.accountName="";
-
-this.selectedBank=null;
-
-this.filteredBanks=this.banks;
-
-},
-
-navigateToTransaction(){
-
-this.$router.push(
-
-`/transaction/${this.userId}`
-
-);
-
-}
-
-}
-
+  data() {
+    return {
+      amount: "",
+      balance: 0,
+      goldenPawn,
+      withdrawing: false,
+      checking: false,
+      loadingBalance: false,
+      message: "",
+      isError: false,
+      reference: "",
+      status: "",
+    };
+  },
+
+  computed: {
+    ...mapGetters(["isLoggedIn", "userId", "token"]),
+
+    canWithdraw() {
+      const amount = Number(this.amount);
+
+      return (
+        this.isLoggedIn &&
+        !this.loadingBalance &&
+        Number.isFinite(amount) &&
+        amount >= 1000 &&
+        Math.round(amount * 100) === amount * 100 &&
+        amount <= Number(this.balance) &&
+        !this.withdrawing
+      );
+    },
+
+    statusClass() {
+      if (this.status === "successful") return "status-success";
+      if (this.status === "failed") return "status-failed";
+      return "status-pending";
+    },
+  },
+
+  mounted() {
+    this.loadBalance();
+  },
+
+  methods: {
+    apiUrl(path) {
+      return `${import.meta.env.VITE_APP_BASE_URL}${path}`;
+    },
+
+    authConfig() {
+      return {
+        headers: {
+          Authorization: `Bearer ${this.$store.getters.token}`,
+        },
+      };
+    },
+
+    formatMoney(value) {
+      return Number(value || 0).toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    },
+
+    async loadBalance() {
+      if (!this.isLoggedIn || !this.userId) return;
+
+      this.loadingBalance = true;
+
+      try {
+        const response = await axios.get(
+          this.apiUrl(
+            `/api/users/${encodeURIComponent(this.userId)}/balance`
+          ),
+          this.authConfig()
+        );
+
+        this.balance = Number(response.data.balance || 0);
+
+        // Keep the shared Vuex balance in sync with the backend.
+        this.$store.commit("updateBalance", this.balance);
+      } catch (error) {
+        console.error("Failed to fetch real Pawn balance:", error);
+
+        this.message = "Unable to fetch your latest balance.";
+        this.isError = true;
+      } finally {
+        this.loadingBalance = false;
+      }
+    },
+
+    async withdraw() {
+      if (!this.canWithdraw) return;
+
+      this.withdrawing = true;
+      this.message = "";
+      this.isError = false;
+      this.reference = "";
+      this.status = "";
+
+      try {
+        const response = await axios.post(
+          this.apiUrl("/api/pawn-withdrawals"),
+          {
+            amount: Number(this.amount),
+          },
+          this.authConfig()
+        );
+
+        this.reference = response.data.reference || "";
+        this.status = response.data.status || "processing";
+        this.message = response.data.message ||
+          "Withdrawal submitted for verification.";
+
+        this.amount = "";
+
+        // The backend already deducted the Pawns.
+        // Fetch the new authoritative balance; don't deduct twice.
+        await this.loadBalance();
+      } catch (error) {
+        this.message =
+          error.response?.data?.error ||
+          "Unable to submit the withdrawal. Check your transaction history before retrying.";
+        this.isError = true;
+
+        // Refresh in case the server processed the request but
+        // the response was lost.
+        await this.loadBalance();
+      } finally {
+        this.withdrawing = false;
+      }
+    },
+
+    async checkStatus() {
+      if (!this.reference || this.checking) return;
+
+      this.checking = true;
+      this.message = "";
+      this.isError = false;
+
+      try {
+        const response = await axios.get(
+          this.apiUrl(
+            `/api/pawn-withdrawals/status/${encodeURIComponent(this.reference)}`
+          ),
+          this.authConfig()
+        );
+
+        const withdrawal = response.data.withdrawal;
+        this.status = withdrawal.status;
+
+        if (this.status === "successful") {
+          this.message = "Withdrawal completed successfully.";
+        } else if (this.status === "failed") {
+          this.message =
+            "Withdrawal failed. Check your updated Pawn balance for the refund.";
+        } else {
+          this.message = "Your withdrawal is still being processed.";
+        }
+
+        await this.loadBalance();
+      } catch (error) {
+        this.message =
+          error.response?.data?.error ||
+          "Unable to check the withdrawal status.";
+        this.isError = true;
+      } finally {
+        this.checking = false;
+      }
+    },
+
+    navigateToTransaction() {
+      this.$router.push(`/transaction/${this.userId}`);
+    },
+  },
 };
 </script>
 
+
 <style scoped>
-
-.withdrawal-container{
-
-    max-width:650px;
-
-    margin:40px auto;
-
-    padding:30px;
-
-    background:lightyellow;
-
-    border-radius:10px;
-
-    box-shadow:0 2px 12px rgba(0,0,0,.12);
-
+.withdrawal-container {
+  max-width: 650px;
+  margin: 40px auto;
+  padding: 30px;
+  background: lightyellow;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
-h2{
-
-    text-align:center;
-
-    margin-bottom:25px;
-
-    color:#1b5e20;
-
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
 }
 
-.transaction-button-container{
-
-    display:flex;
-
-    justify-content:flex-end;
-
-    margin-bottom:20px;
-
+h2 {
+  margin: 0;
+  color: #1b5e20;
 }
 
-.button{
-
-    border:none;
-
-    cursor:pointer;
-
-    border-radius:5px;
-
-    padding:10px 18px;
-
-    font-size:14px;
-
-    transition:.3s;
-
+.history-btn,
+.check-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #0d6efd;
+  color: white;
+  cursor: pointer;
 }
 
-.transaction{
-
-    background:#0d6efd;
-
-    color:white;
-
+.balance-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  margin-bottom: 24px;
+  background: #e9f9ef;
+  border: 1px solid #b7e4c7;
+  border-radius: 8px;
 }
 
-.transaction:hover{
-
-    background:#0b5ed7;
-
+.balance-box strong {
+  color: #155724;
+  font-size: 25px;
 }
 
-.form-group{
 
-    margin-bottom:20px;
-
-    position:relative;
-
+.pawn-balance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #155724;
+  font-size: 25px;
 }
 
-label{
-
-    display:block;
-
-    margin-bottom:8px;
-
-    font-weight:600;
-
-    color:#444;
-
+.pawn-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
-input{
 
-    width:100%;
-
-    box-sizing:border-box;
-
-    padding:12px;
-
-    border:1px solid #ccc;
-
-    border-radius:6px;
-
-    outline:none;
-
-    font-size:15px;
-
+.form-group {
+  margin-bottom: 20px;
 }
 
-input:focus{
-
-    border-color:#198754;
-
-    box-shadow:0 0 4px rgba(25,135,84,.3);
-
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.autocomplete{
-
-    position:relative;
-
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
-.suggestions{
-
-    position:absolute;
-
-    top:100%;
-
-    left:0;
-
-    right:0;
-
-    background:white;
-
-    border:1px solid #ddd;
-
-    border-top:none;
-
-    max-height:250px;
-
-    overflow-y:auto;
-
-    z-index:999;
-
-    box-shadow:0 3px 10px rgba(0,0,0,.12);
-
+.hint,
+.error {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
 }
 
-.suggestion{
-
-    padding:12px;
-
-    cursor:pointer;
-
-    transition:.2s;
-
+.hint {
+  color: #555;
 }
 
-.suggestion:hover{
-
-    background:#f5f5f5;
-
+.error,
+.status-failed {
+  color: #b02a37;
 }
 
-.resolve-btn{
-
-    width:100%;
-
-    padding:12px;
-
-    background:#0d6efd;
-
-    color:white;
-
-    border:none;
-
-    border-radius:6px;
-
-    cursor:pointer;
-
-    font-size:15px;
-
-    margin-top:5px;
-
-    transition:.3s;
-
+.withdraw-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  background: #198754;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-.resolve-btn:hover:not(:disabled){
-
-    background:#0b5ed7;
-
+.withdraw-btn:disabled,
+.check-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.resolve-btn:disabled{
-
-    background:#c8c8c8;
-
-    cursor:not-allowed;
-
+.status-box,
+.message {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
 }
 
-.resolved-box{
-
-    margin-top:18px;
-
-    padding:15px;
-
-    border-radius:6px;
-
-    background:#e9f9ef;
-
-    border:1px solid #b7e4c7;
-
-    color:#155724;
-
+.status-box {
+  background: white;
+  border: 1px solid #ddd;
 }
 
-.success{
-
-    font-weight:bold;
-
-    margin-bottom:6px;
-
+.reference {
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
-.withdraw-btn{
-
-    width:100%;
-
-    margin-top:20px;
-
-    padding:14px;
-
-    border:none;
-
-    border-radius:6px;
-
-    background:#198754;
-
-    color:white;
-
-    font-size:16px;
-
-    cursor:pointer;
-
-    transition:.3s;
-
+.status-success {
+  color: #198754;
 }
 
-.withdraw-btn:hover:not(:disabled){
-
-    background:#157347;
-
+.status-pending {
+  color: #997404;
 }
 
-.withdraw-btn:disabled{
-
-    background:#c8c8c8;
-
-    cursor:not-allowed;
-
+.message {
+  background: #d1e7dd;
+  color: #0f5132;
 }
 
-.message{
-
-    margin-top:20px;
-
-    padding:12px;
-
-    border-radius:6px;
-
-    background:#d1e7dd;
-
-    color:#0f5132;
-
-    border:1px solid #badbcc;
-
-    word-break:break-word;
-
+.message.error {
+  background: #f8d7da;
+  color: #842029;
 }
 
-.message.error{
-
-    background:#f8d7da;
-
-    color:#842029;
-
-    border:1px solid #f5c2c7;
-
+.login-message {
+  text-align: center;
+  margin: 40px;
 }
 
-.error{
-
-    color:#dc3545;
-
-    font-size:13px;
-
+@media (max-width: 768px) {
+  .withdrawal-container {
+    width: 95%;
+    box-sizing: border-box;
+    padding: 20px;
+  }
 }
-
-@media(max-width:768px){
-
-.withdrawal-container{
-
-    width:95%;
-
-    padding:20px;
-
-}
-
-.transaction-button-container{
-
-    justify-content:center;
-
-}
-
-.button{
-
-    width:100%;
-
-}
-
-}
-
 </style>

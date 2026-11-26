@@ -1,8 +1,15 @@
+
 <template>
   <div class="question-bank">
     <header class="topbar">
-      <div class="brand"><span class="brand-icon">🎓</span><span>ETrend Education Services</span></div>
-      <div class="topbar-right"><span class="teacher-avatar">👤</span><span>Teacher</span></div>
+      <div class="brand">
+        <span class="brand-icon">🎓</span>
+        <span>ETrend Education Services</span>
+      </div>
+      <div class="topbar-right">
+        <span class="teacher-avatar">👤</span>
+        <span>Teacher</span>
+      </div>
     </header>
 
     <div class="page-layout">
@@ -20,42 +27,91 @@
           <div class="intro-icon">❔</div>
           <div>
             <h1>Question Bank</h1>
-            <p>Select a topic, choose question type, pick the questions you need and download them as a PDF.</p>
+            <p>
+              Select questions from different topics and download them
+              together as a PDF.
+            </p>
           </div>
         </section>
 
         <section class="context-card">
           <div class="context-item">
             <span class="context-icon">▣</span>
-            <div><small>Class</small><strong>{{ selectedClass }}</strong></div>
+            <div>
+              <small>Class</small>
+              <strong>{{ selectedClass }}</strong>
+            </div>
           </div>
+
           <div class="context-divider"></div>
+
           <div class="context-item">
             <span class="context-icon">📘</span>
-            <div><small>Subject</small><strong>{{ selectedSubject }}</strong></div>
+            <div>
+              <small>Subject</small>
+              <strong>{{ selectedSubject }}</strong>
+            </div>
           </div>
-          <button class="outline-button" @click="showClassEditor = !showClassEditor">✎ Change Subject/Class</button>
+
+          <button
+            class="outline-button"
+            @click="showClassEditor = !showClassEditor"
+          >
+            ✎ Change Subject/Class
+          </button>
+
           <div v-if="showClassEditor" class="class-editor">
-            <label>Class
+            <label>
+              Class
               <select v-model="selectedClass">
-                <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
-                <option>SS 1</option><option>SS 2</option><option>SS 3</option>
+                <option v-for="item in classes" :key="item" :value="item">
+                  {{ item }}
+                </option>
               </select>
             </label>
-            <label>Subject
-              <select v-model="selectedSubject" @change="resetTopic">
-                <option>Mathematics</option><option>English Language</option><option>Basic Science</option>
-                <option>Biology</option><option>Agricultural Science</option>
+
+            <label>
+              Subject
+              <select v-model="selectedSubject">
+                <option
+                  v-for="item in subjects"
+                  :key="item"
+                  :value="item"
+                >
+                  {{ item }}
+                </option>
               </select>
             </label>
           </div>
         </section>
 
-        <div class="workflow">
+        <div v-if="loading" class="questions-empty">
+          <div class="empty-icon">⏳</div>
+          <strong>Loading question bank...</strong>
+          <span>Please wait while the questions are retrieved.</span>
+        </div>
+
+        <div v-else-if="errorMessage" class="questions-empty">
+          <div class="empty-icon">⚠️</div>
+          <strong>Unable to load the question bank</strong>
+          <span>{{ errorMessage }}</span>
+          <button class="outline-button" @click="loadQuestionBank">
+            Try Again
+          </button>
+        </div>
+
+        <div v-else class="workflow">
           <section class="panel topic-panel">
-            <div class="panel-heading"><span class="step">1</span><h2>Select Topic</h2></div>
+            <div class="panel-heading">
+              <span class="step">1</span>
+              <h2>Select Topic</h2>
+            </div>
+
             <div class="panel-body">
-              <p class="panel-hint">Available topics for {{ selectedSubject }} ({{ selectedClass }})</p>
+              <p class="panel-hint">
+                Topics for {{ selectedSubject }} ({{ selectedClass }})
+              </p>
+
               <button
                 v-for="topic in topicsForSubject"
                 :key="topic"
@@ -63,307 +119,998 @@
                 :class="{ chosen: selectedTopic === topic }"
                 @click="chooseTopic(topic)"
               >
-                <span>{{ topic }}</span><span class="chevron">›</span>
+                <span>{{ topic }}</span>
+                <span class="chevron">›</span>
               </button>
-              <div v-if="!topicsForSubject.length" class="empty-state">No sample topics for this subject yet.</div>
+
+              <div v-if="!topicsForSubject.length" class="empty-state">
+                No topics are available for this class and subject.
+              </div>
             </div>
           </section>
 
           <section class="panel type-panel">
-            <div class="panel-heading"><span class="step">2</span><h2>Choose Question Type</h2></div>
+            <div class="panel-heading">
+              <span class="step">2</span>
+              <h2>Choose Question Type</h2>
+            </div>
+
             <div class="panel-body">
-              <p class="panel-hint">Choose the type of questions you want for the selected topic.</p>
-              <button class="type-button theory-type" :class="{ selected: questionType === 'theory' }" :disabled="!selectedTopic" @click="chooseType('theory')">
+              <p class="panel-hint">
+                Choose the type of questions for the selected topic.
+              </p>
+
+              <button
+                class="type-button theory-type"
+                :class="{ selected: questionType === 'theory' }"
+                :disabled="!selectedTopic"
+                @click="chooseType('theory')"
+              >
                 <span class="type-icon">▤</span>
-                <span class="type-copy"><strong>Theory Questions</strong><small>Open-ended questions (no options)</small></span>
+                <span class="type-copy">
+                  <strong>Theory Questions</strong>
+                  <small>Open-ended questions</small>
+                </span>
                 <span class="chevron">›</span>
               </button>
-              <button class="type-button objective-type" :class="{ selected: questionType === 'objective' }" :disabled="!selectedTopic" @click="chooseType('objective')">
+
+              <button
+                class="type-button objective-type"
+                :class="{ selected: questionType === 'objective' }"
+                :disabled="!selectedTopic"
+                @click="chooseType('objective')"
+              >
                 <span class="type-icon dark">☷</span>
-                <span class="type-copy"><strong>Objective Questions</strong><small>Multiple choice (A, B, C, D) with correct answers</small></span>
+                <span class="type-copy">
+                  <strong>Objective Questions</strong>
+                  <small>Multiple choice questions (A–D)</small>
+                </span>
                 <span class="chevron">›</span>
               </button>
-              <div class="selection-summary" v-if="selectedTopic">
+
+              <div v-if="selectedTopic" class="selection-summary">
                 <strong>ⓘ Topic Selected</strong>
                 <b>{{ selectedTopic }}</b>
-                <small>{{ questionType ? typeLabel : 'Choose Theory or Objective to view questions' }}</small>
+                <small>
+                  {{
+                    questionType
+                      ? typeLabel
+                      : 'Choose Theory or Objective to view questions'
+                  }}
+                </small>
               </div>
+
               <div v-else class="selection-summary muted">
-                Select a topic from the first panel to continue.
+                Select a topic to continue.
               </div>
             </div>
           </section>
 
           <section class="panel questions-panel">
-            <div class="panel-heading"><span class="step">3</span><h2>Select Questions</h2></div>
-            <div class="question-tools">
-              <label class="check-label"><input type="checkbox" :checked="allSelected" :disabled="!visibleQuestions.length" @change="toggleAll(true)"> Select All</label>
-              <button class="text-button" :disabled="!selectedIds.length" @click="selectedIds = []">Deselect All</button>
-              <span class="selected-count">{{ selectedIds.length }} selected</span>
-              <button class="download-button" :disabled="!selectedQuestions.length" @click="downloadPdf">⇩ Download PDF</button>
+            <div class="panel-heading">
+              <span class="step">3</span>
+              <h2>Select Questions</h2>
             </div>
 
-            <div v-if="!selectedTopic || !questionType" class="questions-empty">
+            <div class="question-tools">
+              <label class="check-label">
+                <input
+                  type="checkbox"
+                  :checked="allSelected"
+                  :disabled="!visibleQuestions.length"
+                  @change="toggleAll($event.target.checked)"
+                />
+                Select All
+              </label>
+
+              <button
+                class="text-button"
+                :disabled="!selectedIds.length"
+                @click="clearSelections"
+              >
+                Deselect All
+              </button>
+
+              <span class="selected-count">
+                {{ selectedIds.length }} selected
+              </span>
+
+              <button
+                class="download-button"
+                :disabled="!selectedQuestions.length"
+                @click="downloadPdf"
+              >
+                ⇩ Download PDF ({{ selectedQuestions.length }})
+              </button>
+            </div>
+
+            <div
+              v-if="!selectedTopic || !questionType"
+              class="questions-empty"
+            >
               <div class="empty-icon">📝</div>
               <strong>Your questions will appear here</strong>
               <span>Choose a topic and question type to get started.</span>
             </div>
 
-            <div v-else-if="!visibleQuestions.length" class="questions-empty">
+            <div
+              v-else-if="!visibleQuestions.length"
+              class="questions-empty"
+            >
               <div class="empty-icon">📂</div>
-              <strong>No sample questions found</strong>
-              <span>Try another topic or question type.</span>
+              <strong>No questions found</strong>
+              <span>
+                There are no {{ questionType }} questions for
+                {{ selectedTopic }}.
+              </span>
             </div>
 
             <div v-else class="question-list">
-              <article v-for="(question, index) in visibleQuestions" :key="question.id" class="question-card">
+              <article
+                v-for="(question, index) in visibleQuestions"
+                :key="getQuestionKey(question)"
+                class="question-card"
+              >
                 <div class="question-top">
-                  <input type="checkbox" :aria-label="`Select question ${index + 1}`" :checked="selectedIds.includes(question.id)" @change="toggleQuestion(question.id)">
+                  <input
+                    type="checkbox"
+                    :aria-label="`Select question ${index + 1}`"
+                    :checked="isQuestionSelected(question)"
+                    @change="toggleQuestion(question)"
+                  />
+
                   <span class="question-number">{{ index + 1 }}.</span>
-                  <div class="question-text">{{ question.text }}</div>
+
+                  <div class="question-text">
+                    {{ question.text }}
+                  </div>
                 </div>
-                <div v-if="questionType === 'objective'" class="options-grid">
-                  <span v-for="(option, optionIndex) in question.options" :key="optionIndex">
-                    <b>{{ String.fromCharCode(65 + optionIndex) }}.</b> {{ option }}
+
+                <div
+                  v-if="getQuestionImage(question)"
+                  class="question-image-container"
+                >
+                  <img
+                    :src="getQuestionImage(question)"
+                    :alt="`Image for question ${index + 1}`"
+                    class="question-image"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div
+                  v-if="questionType === 'objective'"
+                  class="options-grid"
+                >
+                  <span
+                    v-for="(option, optionIndex) in question.options"
+                    :key="optionIndex"
+                  >
+                    <b>{{ String.fromCharCode(65 + optionIndex) }}.</b>
+                    {{ option }}
                   </span>
                 </div>
-                <div v-if="questionType === 'theory' && question.answer" class="sample-answer"><b>Sample answer:</b> {{ question.answer }}</div>
-                <div v-if="questionType === 'objective'" class="correct-answer">Correct Answer: <strong>{{ question.answer }}</strong></div>
+
+                <div
+                  v-if="questionType === 'theory' && question.answer"
+                  class="sample-answer"
+                >
+                  <b>Sample answer:</b> {{ question.answer }}
+                </div>
+
+                <div
+                  v-if="questionType === 'objective' && question.answer"
+                  class="correct-answer"
+                >
+                  Correct Answer:
+                  <strong>{{ question.answer }}</strong>
+                </div>
               </article>
             </div>
-            <div class="panel-footer" v-if="visibleQuestions.length">
-              Showing {{ visibleQuestions.length }} sample questions · {{ selectedIds.length }} selected
+
+            <div v-if="visibleQuestions.length" class="panel-footer">
+              Showing {{ visibleQuestions.length }} questions
+              · {{ selectedIds.length }} selected across all visited topics
             </div>
           </section>
         </div>
-        <p class="prototype-note">Prototype preview · Questions shown are sample data and are not yet connected to your database.</p>
+
+        <p class="prototype-note">
+          ETrend Education Services · Question Bank
+        </p>
       </main>
     </div>
   </div>
 </template>
 
+
+
 <script setup>
 import { computed, ref, watch } from "vue";
+import { jsPDF } from "jspdf";
+
+// --------------------------------------------------
+// CONFIGURATION
+// --------------------------------------------------
+
+const API_BASE_URL = (
+  import.meta.env.VITE_APP_BASE_URL || ""
+).replace(/\/$/, "");
+
+// Fetch from the new question bank backend.
+const QUESTION_BANK_URL = `${API_BASE_URL}/api/v2/question-bank`;
+
+const classes = [
+  "JSS 1", "JSS 2", "JSS 3",
+  "SS 1", "SS 2", "SS 3"
+];
+
+const subjects = [
+  "Mathematics",
+  "English Language",
+  "Basic Science",
+  "Biology",
+  "Agricultural Science"
+];
+
+// --------------------------------------------------
+// PAGE STATE
+// --------------------------------------------------
 
 const selectedClass = ref("JSS 2");
 const selectedSubject = ref("Mathematics");
-const selectedTopic = ref("Number and Numeration");
-const questionType = ref("objective");
-const selectedIds = ref([]);
+const selectedTopic = ref("");
+const questionType = ref("");
+
 const showClassEditor = ref(false);
+const loading = ref(false);
+const errorMessage = ref("");
 
-const sampleData = {
-  Mathematics: {
-    "Number and Numeration": {
-      objective: [
-        { id: "math-num-o1", text: "What is the place value of the digit 7 in 5,672?", options: ["7 tens", "7 hundreds", "7 thousands", "7 ones"], answer: "A" },
-        { id: "math-num-o2", text: "Which of the following is a prime number?", options: ["1", "4", "7", "9"], answer: "C" },
-        { id: "math-num-o3", text: "Write 3,426 in expanded form.", options: ["3,000 + 400 + 20 + 6", "3,400 + 20 + 6", "3,000 + 400 + 200 + 6", "3,000 + 420 + 6"], answer: "A" },
-        { id: "math-num-o4", text: "Which number is greater than 6,789?", options: ["6,780", "6,870", "6,790", "6,700"], answer: "B" },
-        { id: "math-num-o5", text: "What is the value of 9 in 49,312?", options: ["9 ones", "9 tens", "9 hundreds", "9 thousands"], answer: "D" }
-      ],
-      theory: [
-        { id: "math-num-t1", text: "Explain the difference between a digit and a number.", answer: "A digit is a single symbol from 0 to 9; a number can contain one or more digits." },
-        { id: "math-num-t2", text: "Write 7,305 in words and in expanded form.", answer: "Seven thousand three hundred and five; 7,000 + 300 + 5." },
-        { id: "math-num-t3", text: "Arrange 4,562, 4,256, 4,625 and 4,526 in ascending order.", answer: "4,256, 4,526, 4,562, 4,625." }
-      ]
-    },
-    "Fractions and Decimals": {
-      objective: [
-        { id: "math-fr-o1", text: "What is 1/2 expressed as a decimal?", options: ["0.2", "0.25", "0.5", "1.2"], answer: "C" },
-        { id: "math-fr-o2", text: "Simplify the fraction 6/8.", options: ["1/2", "2/3", "3/4", "4/5"], answer: "C" },
-        { id: "math-fr-o3", text: "Calculate 0.4 + 0.3.", options: ["0.07", "0.7", "7.0", "0.34"], answer: "B" }
-      ],
-      theory: [
-        { id: "math-fr-t1", text: "Define a proper fraction and give two examples.", answer: "A proper fraction has a numerator smaller than its denominator, e.g. 1/2 and 3/4." },
-        { id: "math-fr-t2", text: "Convert 3/5 to a decimal and show your working.", answer: "3 ÷ 5 = 0.6." }
-      ]
-    },
-    "Ratio and Proportion": { objective: [], theory: [] },
-    Algebra: { objective: [], theory: [] },
-    Geometry: { objective: [], theory: [] },
-    Mensuration: { objective: [], theory: [] },
-    Statistics: { objective: [], theory: [] },
-    Trigonometry: { objective: [], theory: [] }
-  },
-  "English Language": {
-    "Parts of Speech": {
-      objective: [
-        { id: "eng-pos-o1", text: "Which word is a noun in the sentence “Ada reads daily”?", options: ["reads", "daily", "Ada", "the"], answer: "C" },
-        { id: "eng-pos-o2", text: "Which of these is an adjective?", options: ["quickly", "beautiful", "run", "under"], answer: "B" }
-      ],
-      theory: [{ id: "eng-pos-t1", text: "Define a noun and give three examples.", answer: "A noun is the name of a person, place, animal or thing." }]
-    },
-    "Comprehension": { objective: [], theory: [] },
-    "Essay Writing": { objective: [], theory: [] },
-    "Grammar": { objective: [], theory: [] }
-  },
-  "Basic Science": {
-    "Living Things": {
-      objective: [{ id: "sci-live-o1", text: "Which of these is a living thing?", options: ["Stone", "Chair", "Goat", "Bottle"], answer: "C" }],
-      theory: [{ id: "sci-live-t1", text: "State four characteristics of living things.", answer: "Movement, respiration, sensitivity, growth, reproduction, excretion, nutrition." }]
-    },
-    "Energy": { objective: [], theory: [] },
-    "Matter": { objective: [], theory: [] }
-  },
-  Biology: { "Cell Structure": { objective: [], theory: [] }, "Nutrition": { objective: [], theory: [] } },
-  "Agricultural Science": { "Soil": { objective: [], theory: [] }, "Farm Tools": { objective: [], theory: [] } }
-};
+const topicsForSubject = ref([]);
+const questionBankQuestions = ref([]);
+const selectedQuestionsMap = ref(new Map());
 
-const topicsForSubject = computed(() => Object.keys(sampleData[selectedSubject.value] || {}));
+const selectedIds = computed(() =>
+  Array.from(selectedQuestionsMap.value.keys())
+);
+
+const selectedQuestions = computed(() =>
+  Array.from(selectedQuestionsMap.value.values())
+);
+
+const typeLabel = computed(() =>
+  questionType.value === "theory"
+    ? "Question type: Theory"
+    : "Question type: Objective"
+);
+
 const visibleQuestions = computed(() => {
   if (!selectedTopic.value || !questionType.value) return [];
-  return sampleData[selectedSubject.value]?.[selectedTopic.value]?.[questionType.value] || [];
+
+  return questionBankQuestions.value.filter(question =>
+    question.topic === selectedTopic.value &&
+    question.questionType === questionType.value
+  );
 });
-const selectedQuestions = computed(() => visibleQuestions.value.filter(q => selectedIds.value.includes(q.id)));
-const allSelected = computed(() => visibleQuestions.value.length > 0 && visibleQuestions.value.every(q => selectedIds.value.includes(q.id)));
-const typeLabel = computed(() => questionType.value === "theory" ? "Question type: Theory" : "Question type: Objective");
+
+const allSelected = computed(() =>
+  visibleQuestions.value.length > 0 &&
+  visibleQuestions.value.every(isQuestionSelected)
+);
+
+// --------------------------------------------------
+// PRESERVE ORIGINAL DATABASE TEXT
+// --------------------------------------------------
+
+// Do not trim, rewrite, replace, or paraphrase question text.
+// Only remove null characters and normalize line endings.
+function exactText(value) {
+  return String(value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u0000/g, "");
+}
+
+// Options may be stored as strings or as objects.
+function getOptionText(option) {
+  if (typeof option === "string" || typeof option === "number") {
+    return exactText(option);
+  }
+
+  if (option && typeof option === "object") {
+    return exactText(
+      option.text ??
+      option.option ??
+      option.value ??
+      option.label ??
+      ""
+    );
+  }
+
+  return "";
+}
+
+// --------------------------------------------------
+// QUESTION IMAGE SUPPORT
+// --------------------------------------------------
+
+function getQuestionImage(question) {
+  return (
+    question?.imageUrl ||
+    question?.image ||
+    question?.imagePath ||
+    question?.imageURL ||
+    ""
+  );
+}
+
+// --------------------------------------------------
+// QUESTION IDENTIFICATION
+// --------------------------------------------------
+
+function getQuestionKey(question) {
+  return [
+    selectedClass.value,
+    selectedSubject.value,
+    question.topic || selectedTopic.value,
+    question.questionType || questionType.value,
+    question.id
+  ].join("::");
+}
+
+function isQuestionSelected(question) {
+  return selectedQuestionsMap.value.has(getQuestionKey(question));
+}
+
+// --------------------------------------------------
+// LOAD QUESTIONS FROM THE NEW BACKEND
+// --------------------------------------------------
+
+let requestNumber = 0;
+
+async function loadQuestionBank() {
+  const currentRequest = ++requestNumber;
+
+  loading.value = true;
+  errorMessage.value = "";
+
+  selectedQuestionsMap.value = new Map();
+  selectedTopic.value = "";
+  questionType.value = "";
+  topicsForSubject.value = [];
+  questionBankQuestions.value = [];
+
+  try {
+    const params = new URLSearchParams({
+      className: selectedClass.value,
+      subject: selectedSubject.value
+    });
+
+    const response = await fetch(
+      `${QUESTION_BANK_URL}?${params.toString()}`,
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        credentials: "include"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `The server returned HTTP ${response.status}.`
+      );
+    }
+
+    const result = await response.json();
+
+    if (result.success === false) {
+      throw new Error(
+        result.message || "The question bank could not be loaded."
+      );
+    }
+
+    // Accepts either:
+    // { topics: [], questions: [] }
+    // or { data: { topics: [], questions: [] } }
+    const payload = result.data || result;
+
+    const rawQuestions = Array.isArray(payload.questions)
+      ? payload.questions
+      : [];
+
+    questionBankQuestions.value = rawQuestions
+      .filter(question =>
+        question.id !== undefined &&
+        question.id !== null &&
+        question.text !== undefined &&
+        question.text !== null
+      )
+      .map(question => ({
+        ...question,
+
+        id: String(question.id),
+
+        // Preserve the database text exactly.
+        text: exactText(question.text),
+
+        topic: exactText(question.topic ?? ""),
+
+        questionType: exactText(
+          question.questionType ?? question.type ?? ""
+        ).toLowerCase(),
+
+        // Preserve original option content.
+        options: Array.isArray(question.options)
+          ? question.options
+          : [],
+
+        answer: exactText(question.answer ?? "")
+      }))
+      .filter(question =>
+        ["objective", "theory"].includes(question.questionType)
+      );
+
+    const topicsFromApi = Array.isArray(payload.topics)
+      ? payload.topics
+          .map(topic =>
+            typeof topic === "string"
+              ? topic
+              : topic?.name
+          )
+          .filter(topic => typeof topic === "string" && topic.length > 0)
+      : [];
+
+    const topicsFromQuestions = questionBankQuestions.value
+      .map(question => question.topic)
+      .filter(topic => topic.length > 0);
+
+    // Keep topic spelling and capitalization as stored.
+    topicsForSubject.value = [
+      ...new Set([...topicsFromApi, ...topicsFromQuestions])
+    ];
+
+    selectedTopic.value = topicsForSubject.value[0] || "";
+
+  } catch (error) {
+    if (currentRequest === requestNumber) {
+      console.error("Question bank loading failed:", error);
+
+      errorMessage.value =
+        error?.message ||
+        "Unable to connect to the question bank server.";
+    }
+  } finally {
+    if (currentRequest === requestNumber) {
+      loading.value = false;
+    }
+  }
+}
+
+watch(
+  [selectedClass, selectedSubject],
+  loadQuestionBank,
+  { immediate: true }
+);
+
+// --------------------------------------------------
+// TOPIC AND QUESTION-TYPE NAVIGATION
+// --------------------------------------------------
 
 function chooseTopic(topic) {
   selectedTopic.value = topic;
   questionType.value = "";
-  selectedIds.value = [];
 }
+
 function chooseType(type) {
   questionType.value = type;
-  selectedIds.value = [];
 }
-function resetTopic() {
-  selectedTopic.value = topicsForSubject.value[0] || "";
-  questionType.value = "";
-  selectedIds.value = [];
-}
-function toggleQuestion(id) {
-  selectedIds.value = selectedIds.value.includes(id)
-    ? selectedIds.value.filter(selectedId => selectedId !== id)
-    : [...selectedIds.value, id];
-}
-function toggleAll(checked) {
-  selectedIds.value = checked ? visibleQuestions.value.map(q => q.id) : [];
-}
-watch([selectedTopic, questionType, selectedSubject], () => {
-  const available = new Set(visibleQuestions.value.map(q => q.id));
-  selectedIds.value = selectedIds.value.filter(id => available.has(id));
-});
 
-function escapePdfText(value) {
-  return String(value ?? "")
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)")
-    .replace(/[^\x20-\x7E]/g, "?");
-}
-function wrapText(text, maxChars = 88) {
-  const words = String(text ?? "").split(/\s+/);
-  const lines = [];
-  let line = "";
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (candidate.length > maxChars && line) {
-      lines.push(line);
-      line = word;
-    } else line = candidate;
+// --------------------------------------------------
+// SELECTION MANAGEMENT
+// --------------------------------------------------
+
+function toggleQuestion(question) {
+  const key = getQuestionKey(question);
+  const updated = new Map(selectedQuestionsMap.value);
+
+  if (updated.has(key)) {
+    updated.delete(key);
+  } else {
+    updated.set(key, {
+      ...question,
+      id: String(question.id),
+      topic: question.topic || selectedTopic.value,
+      questionType: question.questionType || questionType.value,
+      className: selectedClass.value,
+      subject: selectedSubject.value
+    });
   }
-  if (line) lines.push(line);
-  return lines.length ? lines : [""];
+
+  selectedQuestionsMap.value = updated;
 }
-function buildPdfLines() {
-  const lines = [
-    "ETREND EDUCATION SERVICES",
-    "QUESTION BANK",
-    `Class: ${selectedClass.value}    Subject: ${selectedSubject.value}`,
-    `Topic: ${selectedTopic.value}`,
-    `Question Type: ${questionType.value === "theory" ? "Theory" : "Objective"}`,
-    " "
-  ];
-  selectedQuestions.value.forEach((q, index) => {
-    lines.push(...wrapText(`${index + 1}. ${q.text}`));
-    if (questionType.value === "objective") {
-      q.options.forEach((option, i) => lines.push(...wrapText(`   ${String.fromCharCode(65 + i)}. ${option}`)));
-      lines.push(`   Correct Answer: ${q.answer}`);
-    } else if (q.answer) {
-      lines.push(...wrapText(`   Sample answer: ${q.answer}`));
+
+function toggleAll(checked) {
+  const updated = new Map(selectedQuestionsMap.value);
+
+  for (const question of visibleQuestions.value) {
+    const key = getQuestionKey(question);
+
+    if (checked) {
+      updated.set(key, {
+        ...question,
+        id: String(question.id),
+        topic: question.topic || selectedTopic.value,
+        questionType: question.questionType || questionType.value,
+        className: selectedClass.value,
+        subject: selectedSubject.value
+      });
+    } else {
+      updated.delete(key);
     }
-    lines.push(" ");
-  });
-  lines.push("Generated from the ETrend Education Services Question Bank.");
-  return lines;
+  }
+
+  selectedQuestionsMap.value = updated;
 }
-function downloadPdf() {
+
+function clearSelections() {
+  selectedQuestionsMap.value = new Map();
+}
+
+// --------------------------------------------------
+// PDF IMAGE HELPERS
+// --------------------------------------------------
+
+function getPdfImageFormat(dataUrl) {
+  if (dataUrl.startsWith("data:image/png")) return "PNG";
+  return "JPEG";
+}
+
+async function imageToPdfDataUrl(imageUrl) {
+  if (!imageUrl) return null;
+
+  const source = imageUrl.startsWith("data:image/")
+    ? imageUrl
+    : await (async () => {
+        const response = await fetch(imageUrl, {
+          mode: "cors",
+          credentials: "omit"
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `A question image could not be loaded (HTTP ${response.status}).`
+          );
+        }
+
+        const blob = await response.blob();
+
+        if (!blob.type.startsWith("image/")) {
+          throw new Error(
+            "A question image URL did not return an image file."
+          );
+        }
+
+        return await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () =>
+            reject(new Error("A question image could not be read."));
+
+          reader.readAsDataURL(blob);
+        });
+      })();
+
+  return await new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+
+        const context = canvas.getContext("2d");
+
+        if (!context || !canvas.width || !canvas.height) {
+          reject(new Error("A question image has invalid dimensions."));
+          return;
+        }
+
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.92));
+      } catch {
+        reject(new Error("A question image could not be prepared for the PDF."));
+      }
+    };
+
+    image.onerror = () => reject(
+      new Error(
+        "A question image could not be accessed. Its host must permit cross-origin access."
+      )
+    );
+
+    image.src = source;
+  });
+}
+
+// --------------------------------------------------
+// PDF LAYOUT HELPERS
+// --------------------------------------------------
+
+function ensurePdfSpace(doc, y, height, marginBottom = 18) {
+  if (y + height > doc.internal.pageSize.getHeight() - marginBottom) {
+    doc.addPage();
+    return 18;
+  }
+
+  return y;
+}
+
+function writePdfWrappedText(
+  doc,
+  text,
+  x,
+  y,
+  maxWidth,
+  lineHeight = 5
+) {
+  const lines = doc.splitTextToSize(exactText(text), maxWidth);
+
+  for (const line of lines) {
+    y = ensurePdfSpace(doc, y, lineHeight);
+    doc.text(line, x, y);
+    y += lineHeight;
+  }
+
+  return y;
+}
+
+// Draw answer options in a horizontal row where space permits.
+// Long options wrap onto subsequent lines instead of being cut off.
+function writeOptionsHorizontally(doc, options, x, y, maxWidth) {
+  const gap = 5;
+  const lineHeight = 5;
+  const usableOptions = options
+    .map(getOptionText)
+    .filter(option => option.length > 0);
+
+  let currentX = x;
+  let currentY = y;
+
+  for (let index = 0; index < usableOptions.length; index++) {
+    const label = `${String.fromCharCode(65 + index)}.`;
+    const optionText = usableOptions[index];
+
+    doc.setFont("helvetica", "bold");
+    const labelWidth = doc.getTextWidth(label);
+    doc.setFont("helvetica", "normal");
+
+    const availableTextWidth = Math.max(
+      10,
+      maxWidth - labelWidth - 2
+    );
+
+    const textLines = doc.splitTextToSize(
+      optionText,
+      availableTextWidth
+    );
+
+    const firstLineWidth = doc.getTextWidth(textLines[0] || "");
+    const optionWidth = labelWidth + 2 + firstLineWidth;
+
+    // If the option cannot fit on this row, start another row.
+    if (
+      currentX > x &&
+      currentX + optionWidth > x + maxWidth
+    ) {
+      currentX = x;
+      currentY += lineHeight;
+    }
+
+    currentY = ensurePdfSpace(
+      doc,
+      currentY,
+      Math.max(lineHeight, textLines.length * lineHeight)
+    );
+
+    doc.setFont("helvetica", "bold");
+    doc.text(label, currentX, currentY);
+
+    doc.setFont("helvetica", "normal");
+    const textX = currentX + labelWidth + 2;
+
+    doc.text(textLines[0] || "", textX, currentY);
+
+    if (textLines.length > 1) {
+      for (let lineIndex = 1; lineIndex < textLines.length; lineIndex++) {
+        currentY = ensurePdfSpace(
+          doc,
+          currentY + lineHeight,
+          lineHeight
+        );
+
+        doc.text(textLines[lineIndex], x + 4, currentY);
+      }
+
+      currentY += lineHeight;
+      currentX = x;
+    } else {
+      currentX += optionWidth + gap;
+    }
+  }
+
+  return currentY + lineHeight;
+}
+
+// --------------------------------------------------
+// PDF GENERATION
+// --------------------------------------------------
+
+async function downloadPdf() {
   if (!selectedQuestions.value.length) return;
 
-  // Build a small, dependency-free PDF with wrapped text and automatic page breaks.
-  const lines = buildPdfLines();
-  const pages = [];
-  let page = [];
-  lines.forEach(line => {
-    wrapText(line, 88).forEach(wrapped => {
-      if (page.length >= 48) {
-        pages.push(page);
-        page = [];
-      }
-      page.push(wrapped);
+  const downloadButton = document.querySelector(".download-button");
+
+  if (downloadButton) downloadButton.disabled = true;
+
+  try {
+    const questions = [...selectedQuestions.value].sort((a, b) => {
+      const topicCompare = String(a.topic || "").localeCompare(
+        String(b.topic || "")
+      );
+
+      if (topicCompare) return topicCompare;
+
+      const typeCompare = String(a.questionType || "").localeCompare(
+        String(b.questionType || "")
+      );
+
+      if (typeCompare) return typeCompare;
+
+      return String(a.id).localeCompare(String(b.id));
     });
-  });
-  if (page.length) pages.push(page);
 
-  const objects = [];
-  const pageObjectIds = [];
-  const fontObjectId = 3;
-  const contentStartId = 4;
-  const pageStartId = contentStartId + pages.length;
-  const catalogId = pageStartId + pages.length;
-  const pagesId = catalogId + 1;
+    // Prepare images before building the PDF.
+    const preparedQuestions = await Promise.all(
+      questions.map(async question => {
+        const imageUrl = getQuestionImage(question);
 
-  objects[1] = "<< /Type /Catalog /Pages " + pagesId + " 0 R >>";
-  objects[2] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
-  for (let i = 0; i < pages.length; i++) {
-    const contentId = contentStartId + i;
-    const pageId = pageStartId + i;
-    pageObjectIds.push(pageId);
-    const stream = [
-      "BT",
-      "/F1 10 Tf",
-      "50 790 Td",
-      "14 TL",
-      ...pages[i].flatMap(line => [`(${escapePdfText(line)}) Tj`, "T*"]),
-      "ET"
-    ].join("\n");
-    objects[contentId] = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
-    objects[pageId] = `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 2 0 R >> >> /Contents ${contentId} 0 R >>`;
+        return {
+          ...question,
+          pdfImage: imageUrl
+            ? await imageToPdfDataUrl(imageUrl)
+            : null
+        };
+      })
+    );
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 17;
+
+    doc.setProperties({
+      title: `${selectedSubject.value} Question Bank`,
+      subject: `${selectedClass.value} - ${selectedSubject.value}`,
+      author: "ETrend Education Services"
+    });
+
+    doc.setTextColor(0, 51, 102);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("ETREND EDUCATION SERVICES", margin, y);
+
+    y += 8;
+    doc.setFontSize(13);
+    doc.text("QUESTION BANK", margin, y);
+
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(20, 20, 20);
+
+    doc.text(`Class: ${selectedClass.value}`, margin, y);
+    y += 5;
+    doc.text(`Subject: ${selectedSubject.value}`, margin, y);
+    y += 5;
+    doc.text(`Total Questions: ${preparedQuestions.length}`, margin, y);
+    y += 8;
+
+    let previousGroup = "";
+
+    for (let index = 0; index < preparedQuestions.length; index++) {
+      const question = preparedQuestions[index];
+      const typeName =
+        question.questionType === "theory" ? "Theory" : "Objective";
+      const groupName = `${question.topic || "General"} — ${typeName}`;
+
+      if (groupName !== previousGroup) {
+        y = ensurePdfSpace(doc, y, 12);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(0, 51, 102);
+
+        y = writePdfWrappedText(
+          doc,
+          groupName,
+          margin,
+          y,
+          contentWidth,
+          5
+        );
+
+        doc.setDrawColor(190, 205, 222);
+        doc.line(margin, y, pageWidth - margin, y);
+
+        y += 5;
+        previousGroup = groupName;
+      }
+
+      // Question text comes directly from the database.
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 51, 102);
+
+      const prefix = `${index + 1}. `;
+      const prefixWidth = doc.getTextWidth(prefix);
+
+      const questionLines = doc.splitTextToSize(
+        exactText(question.text),
+        contentWidth - prefixWidth
+      );
+
+      y = ensurePdfSpace(doc, y, questionLines.length * 5);
+      doc.text(prefix, margin, y);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(20, 20, 20);
+
+      questionLines.forEach((line, lineIndex) => {
+        if (lineIndex === 0) {
+          doc.text(line, margin + prefixWidth, y);
+        } else {
+          y = ensurePdfSpace(doc, y + 5, 5);
+          doc.text(line, margin + prefixWidth, y);
+        }
+      });
+
+      y += 6;
+
+      // Image appears immediately below the question.
+      // For objective questions, options follow the image.
+      // For theory questions, the sample answer follows the image.
+      if (question.pdfImage) {
+        const imageProperties = doc.getImageProperties(question.pdfImage);
+        const maxImageWidth = Math.min(contentWidth, 160);
+        const maxImageHeight = 72;
+
+        const scale = Math.min(
+          maxImageWidth / imageProperties.width,
+          maxImageHeight / imageProperties.height,
+          1
+        );
+
+        const imageWidth = imageProperties.width * scale;
+        const imageHeight = imageProperties.height * scale;
+
+        y = ensurePdfSpace(doc, y, imageHeight + 5);
+
+        doc.addImage(
+          question.pdfImage,
+          getPdfImageFormat(question.pdfImage),
+          margin,
+          y,
+          imageWidth,
+          imageHeight,
+          undefined,
+          "FAST"
+        );
+
+        y += imageHeight + 5;
+      }
+
+      if (question.questionType === "objective") {
+        y = writeOptionsHorizontally(
+          doc,
+          Array.isArray(question.options) ? question.options : [],
+          margin + 4,
+          y,
+          contentWidth - 4
+        );
+
+        if (question.answer) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(0, 51, 102);
+
+          y = writePdfWrappedText(
+            doc,
+            `Correct Answer: ${exactText(question.answer)}`,
+            margin + 4,
+            y,
+            contentWidth - 4,
+            4.5
+          );
+        }
+      } else if (question.answer) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(0, 51, 102);
+
+        y = writePdfWrappedText(
+          doc,
+          "Sample answer:",
+          margin + 4,
+          y,
+          contentWidth - 4,
+          4.5
+        );
+
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(20, 20, 20);
+
+        y = writePdfWrappedText(
+          doc,
+          exactText(question.answer),
+          margin + 4,
+          y,
+          contentWidth - 4,
+          4.5
+        );
+      }
+
+      y += 5;
+    }
+
+    const pageCount = doc.getNumberOfPages();
+
+    for (let page = 1; page <= pageCount; page++) {
+      doc.setPage(page);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+
+      doc.text(
+        `ETrend Education Services | Page ${page} of ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 8,
+        { align: "center" }
+      );
+    }
+
+    const safeName = `${selectedSubject.value}-question-bank`
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-|-$/g, "")
+      .toLowerCase();
+
+    doc.save(`${safeName || "question-bank"}.pdf`);
+    clearSelections();
+
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+
+    window.alert(
+      error?.message ||
+      "The PDF could not be created. Please check the question images and try again. Your selections have been kept."
+    );
+  } finally {
+    if (downloadButton) downloadButton.disabled = false;
   }
-  objects[catalogId] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
-  objects[pagesId] = `<< /Type /Pages /Kids [${pageObjectIds.map(id => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`;
-
-  // The object array above uses IDs starting at 1; include a harmless font slot at 3.
-  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  for (let id = 1; id < objects.length; id++) {
-    if (!objects[id]) continue;
-    offsets[id] = pdf.length;
-    pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
-  }
-  const xrefOffset = pdf.length;
-  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
-  for (let id = 1; id < objects.length; id++) {
-    pdf += offsets[id] ? `${String(offsets[id]).padStart(10, "0")} 00000 n \n` : "0000000000 00000 f \n";
-  }
-  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-
-  const blob = new Blob([pdf], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const safeName = `${selectedSubject.value}-${selectedTopic.value}-${questionType.value}`
-    .replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
-  link.href = url;
-  link.download = `${safeName || "selected-questions"}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }
 </script>
+
+
 
 <style scoped>
 :global(*) { box-sizing: border-box; }
@@ -433,7 +1180,10 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: #003366; curso
 .question-number, .question-text { color: #003366; font-size: 13px; line-height: 1.55; }
 .question-number { font-weight: 750; }
 .question-text { color: #111; }
-.options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; padding: 11px 0 0 45px; font-size: 12px; line-height: 1.45; color: #253e59; }
+.options-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 7px 18px; padding: 11px 0 0 45px; font-size: 12px; line-height: 1.45; color: #253e59; }
+.options-grid > span { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.question-image-container { padding: 10px 0 0 45px; }
+.question-image { display: block; max-width: min(100%, 420px); max-height: 280px; width: auto; height: auto; object-fit: contain; object-position: left center; }
 .options-grid b { color: #003366; }
 .correct-answer, .sample-answer { padding: 11px 0 0 45px; font-size: 12px; color: #003366; line-height: 1.5; }
 .correct-answer strong { color: #111; }
@@ -472,6 +1222,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: #003366; curso
   .question-tools { gap: 10px; }
   .selected-count { margin-left: 0; }
   .download-button { width: 100%; }
-  .options-grid { grid-template-columns: minmax(0, 1fr); padding-left: 45px; }
+  .options-grid { padding-left: 45px; gap: 7px 12px; }
+  .question-image-container { padding-left: 45px; }
 }
 </style>
